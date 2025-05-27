@@ -1,4 +1,4 @@
-const { pool } = require("../config/database");
+const { pool } = require("../../config/database");
 
 class Product {
   constructor({
@@ -24,7 +24,11 @@ class Product {
   }
 
   applyDiscount(percentage) {
-    if (typeof percentage !== "number" || percentage <= 0 || percentage >= 100) {
+    if (
+      typeof percentage !== "number" ||
+      percentage <= 0 ||
+      percentage >= 100
+    ) {
       throw new Error("Porcentaje inválido");
     }
     const discount = (this.precio * percentage) / 100;
@@ -47,6 +51,18 @@ class Product {
 
     const [rows] = await pool.query(query, params);
     return rows.map((row) => new Product(row));
+  }
+
+  static async searchByName(busqueda) {
+    let sql = "SELECT id, nombre, imagen FROM productos";
+    let params = [];
+    if (busqueda) {
+      sql += " WHERE nombre LIKE ?";
+      params.push(`%${busqueda}%`);
+    }
+    sql += " LIMIT 10";
+    const [rows] = await pool.query(sql, params);
+    return rows;
   }
 }
 

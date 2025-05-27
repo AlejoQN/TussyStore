@@ -29,10 +29,11 @@ const dbConfig = {
   user: process.env.DB_USER,
   password: process.env.DB_PASS,
   database: process.env.DB_NAME,
-  port: process.env.DB_PORT || 3306,
+  port: process.env.DB_PORT || 3307,
 };
 let db;
-mysql.createConnection(dbConfig)
+mysql
+  .createConnection(dbConfig)
   .then((connection) => {
     db = connection;
     console.log("Conexión a MySQL exitosa");
@@ -41,6 +42,10 @@ mysql.createConnection(dbConfig)
     console.error("Error conectando a MySQL:", err.message);
     process.exit(1);
   });
+
+// Ruta Productos
+const productRoutes = require("./routes/productRoutes");
+app.use("/api/productos", productRoutes);
 
 // Ruta de salud
 app.get("/api/health", (req, res) => {

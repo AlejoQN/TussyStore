@@ -10,7 +10,7 @@ type ProductCardProps = {
   masVendido?: boolean;
   descripcion: string;
   onAddToCart?: () => void;
-  onToggleFavorite?: () => void;
+  onToggleFavorite?: (nuevoEstado: boolean) => void;
   favorito?: boolean;
 };
 
@@ -24,9 +24,35 @@ export default function ProductCard({
   descripcion,
   onAddToCart,
   onToggleFavorite,
-  favorito,
+  favorito: favoritoProp,
 }: ProductCardProps) {
   const [hover, setHover] = useState(false);
+  // Estado local para favorito si no se controla desde el padre
+  const [favorito, setFavorito] = useState(!!favoritoProp);
+  const [favAnim, setFavAnim] = useState(false);
+
+  // Sincroniza el estado local si cambia el prop desde el padre
+  React.useEffect(() => {
+    setFavorito(!!favoritoProp);
+  }, [favoritoProp]);
+
+  // Animación y cambio de favorito
+  const handleFavorite = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setFavAnim(true);
+    setFavorito((prev) => {
+      const nuevo = !prev;
+      onToggleFavorite && onToggleFavorite(nuevo);
+      return nuevo;
+    });
+    setTimeout(() => setFavAnim(false), 350);
+  };
+
+  // Agregar al carrito
+  const handleAddToCart = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onAddToCart && onAddToCart();
+  };
 
   return (
     <div
@@ -37,16 +63,26 @@ export default function ProductCard({
       {/* Corazón favoritos */}
       {(hover || favorito) && (
         <button
-          className="absolute top-3 right-3 text-2xl z-10"
-          onClick={(e) => {
-            e.stopPropagation();
-            onToggleFavorite && onToggleFavorite();
-          }}
+          className={`absolute top-3 right-3 z-10 transition-transform duration-200 ${
+            favAnim ? "scale-125" : ""
+          }`}
+          onClick={handleFavorite}
           aria-label="Agregar a favoritos"
         >
-          <span style={{ color: favorito ? "#e11d48" : "#fff", textShadow: favorito ? "0 0 2px #fff" : "0 0 2px #e11d48" }}>
-            ❤️
-          </span>
+          {favorito ? (
+            <img
+              src="/img/iconos/favorito-lleno.svg"
+              alt="Favorito"
+              className="h-7 w-7"
+              style={{ filter: "drop-shadow(0 0 2px #fff)" }}
+            />
+          ) : (
+            <img
+              src="/img/iconos/favorito.svg"
+              alt="Agregar a favoritos"
+              className="h-7 w-7"
+            />
+          )}
         </button>
       )}
 
@@ -62,10 +98,7 @@ export default function ProductCard({
       {hover && (
         <button
           className="absolute left-1/2 -translate-x-1/2 bottom-28 bg-white text-black px-4 py-2 rounded shadow font-medium transition hover:bg-primary hover:text-white"
-          onClick={(e) => {
-            e.stopPropagation();
-            onAddToCart && onAddToCart();
-          }}
+          onClick={handleAddToCart}
         >
           Agregar al Carrito
         </button>
@@ -81,7 +114,12 @@ export default function ProductCard({
           </span>
           {(precioTachado || descuento) && (
             <span className="text-gray-400 line-through text-sm">
-              ${precioTachado ? precioTachado.toLocaleString("es-CO") : (precio + ((descuento ?? 0) / 100) * precio).toLocaleString("es-CO")}
+              $
+              {precioTachado
+                ? precioTachado.toLocaleString("es-CO")
+                : (precio + ((descuento ?? 0) / 100) * precio).toLocaleString(
+                    "es-CO"
+                  )}
             </span>
           )}
         </div>
