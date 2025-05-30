@@ -47,6 +47,10 @@ mysql
 const productRoutes = require("./routes/productRoutes");
 app.use("/api/productos", productRoutes);
 
+// Ruta Órdenes
+const orderRoutes = require("./routes/orderRoutes");
+app.use("/api/ordenes", orderRoutes);
+
 // Ruta de salud
 app.get("/api/health", (req, res) => {
   res.json({ status: "ok", message: "Tussy Store API running" });

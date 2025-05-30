@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import Providers from "@/context/Providers";
+import { CheckoutProvider } from "@/app/checkout/checkoutContext";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -39,9 +40,13 @@ export default function RootLayout({
 }) {
   return (
     <html lang="es">
-      <body className={inter.variable + " antialiased bg-background text-foreground"}>
+      <body
+        className={
+          inter.variable + " antialiased bg-background text-foreground"
+        }
+      >
         <Providers>
-          {children}
+          <CheckoutProvider>{children}</CheckoutProvider>
         </Providers>
       </body>
     </html>
