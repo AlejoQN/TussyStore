@@ -19,10 +19,10 @@ export default function CartPage() {
       <Header />
       <div className="flex-1">
         <div>
-    {items.map(item => (
-      <div key={item.id}>{item.nombre}</div>
-    ))}
-  </div>
+          {items.map((item) => (
+            <div key={item.id}>{item.nombre}</div>
+          ))}
+        </div>
         <div className="max-w-6xl mx-auto py-8 px-4 grid grid-cols-1 md:grid-cols-3 gap-8">
           {/* Lista de productos */}
           <div className="md:col-span-2">

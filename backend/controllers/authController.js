@@ -2,19 +2,19 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { pool } = require("../config/database");
 const nodemailer = require("nodemailer");
+const multer = require("multer");
+const path = require("path");
 
 // 1. Registro de usuario
 exports.register = async (req, res) => {
   const { nombre, email, password } = req.body;
   try {
-    // Validar email único
     const [rows] = await pool.query("SELECT id FROM usuarios WHERE email = ?", [
       email,
     ]);
     if (rows.length > 0) {
       return res.status(400).json({ error: "El email ya está registrado" });
     }
-    // Hash de contraseña
     const hashed = await bcrypt.hash(password, 10);
     await pool.query(
       "INSERT INTO usuarios (nombre, email, password) VALUES (?, ?, ?)",
@@ -106,7 +106,23 @@ exports.forgotPassword = async (req, res) => {
   }
 };
 
-// 4. Middleware de verificación de token
+// 4. Reset password
+exports.resetPassword = async (req, res) => {
+  const { token, password } = req.body;
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const hashed = await bcrypt.hash(password, 10);
+    await pool.query("UPDATE usuarios SET password = ? WHERE id = ?", [
+      hashed,
+      decoded.id,
+    ]);
+    res.json({ message: "Contraseña actualizada correctamente" });
+  } catch (err) {
+    res.status(400).json({ error: "Token inválido o expirado" });
+  }
+};
+
+// 5. Middleware de verificación de token (para rutas protegidas)
 exports.verifyToken = (req, res, next) => {
   const authHeader = req.headers.authorization;
   if (!authHeader) return res.status(401).json({ error: "Token requerido" });
@@ -117,3 +133,58 @@ exports.verifyToken = (req, res, next) => {
     next();
   });
 };
+
+// 6. Obtener perfil
+exports.getProfile = async (req, res) => {
+  try {
+    const [rows] = await pool.query(
+      "SELECT id, nombre, email, telefono, direccion, foto FROM usuarios WHERE id = ?",
+      [req.user.id]
+    );
+    if (rows.length === 0)
+      return res.status(404).json({ error: "Usuario no encontrado" });
+    res.json(rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: "Error obteniendo perfil" });
+  }
+};
+
+// 7. Actualizar perfil
+exports.updateProfile = async (req, res) => {
+  const { nombre, telefono, direccion } = req.body;
+  try {
+    await pool.query(
+      "UPDATE usuarios SET nombre = ?, telefono = ?, direccion = ? WHERE id = ?",
+      [nombre, telefono, direccion, req.user.id]
+    );
+    res.json({ message: "Perfil actualizado correctamente" });
+  } catch (err) {
+    res.status(500).json({ error: "Error actualizando perfil" });
+  }
+};
+
+// 8. Cambiar foto de perfil (usa multer para subir archivos)
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, path.join(__dirname, "../uploads"));
+  },
+  filename: function (req, file, cb) {
+    const ext = path.extname(file.originalname);
+    cb(null, `user_${req.user.id}_${Date.now()}${ext}`);
+  },
+});
+const upload = multer({ storage });
+
+exports.cambiarFotoPerfil = [
+  upload.single("foto"),
+  async (req, res) => {
+    if (!req.file)
+      return res.status(400).json({ error: "No se subió ninguna imagen" });
+    const url = `/uploads/${req.file.filename}`;
+    await pool.query("UPDATE usuarios SET foto = ? WHERE id = ?", [
+      url,
+      req.user.id,
+    ]);
+    res.json({ foto: url });
+  },
+];

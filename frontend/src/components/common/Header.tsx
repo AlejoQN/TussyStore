@@ -2,10 +2,12 @@
 import Link from "next/link";
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/context/AuthContext";
 
 const categorias = ["Hombre", "Mujer", "Niños", "Accesorios"];
 
 export default function Header() {
+  const { user, logout } = useAuth();
   const [showCategorias, setShowCategorias] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -207,7 +209,10 @@ export default function Header() {
         <button
           className="hover:text-primary"
           title="Favoritos"
-          onClick={handleFavoritos}
+          onClick={() => {
+            router.push("/perfil/favoritos");
+            setMenuOpen(false);
+          }}
           aria-label="Favoritos"
         >
           <img src="/img/iconos/favorito.svg" alt="Favoritos" className="h-7 w-7" />
@@ -221,12 +226,29 @@ export default function Header() {
         >
           <img src="/img/iconos/carrito.svg" alt="Carrito" className="h-7 w-7" />
         </button>
-        <Link
-          href="/login"
-          className="ml-2 px-4 py-1 border rounded hover:bg-pink-400 transition text-black"
-        >
-          Iniciar sesión
-        </Link>
+        {user ? (
+          <div className="flex items-center gap-2">
+            <img
+              src={user.foto || "/img/perfil-demo.jpg"}
+              alt="Perfil"
+              className="h-8 w-8 rounded-full object-cover border"
+            />
+            <span className="font-semibold">{user.nombre}</span>
+            <button
+              onClick={logout}
+              className="ml-2 px-3 py-1 border rounded hover:bg-pink-400 transition text-black"
+            >
+              Cerrar sesión
+            </button>
+          </div>
+        ) : (
+          <Link
+            href="/login"
+            className="ml-2 px-4 py-1 border rounded hover:bg-pink-400 transition text-black"
+          >
+            Iniciar sesión
+          </Link>
+        )}
       </div>
     </header>
   );

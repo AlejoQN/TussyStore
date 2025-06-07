@@ -5,6 +5,8 @@ const cors = require("cors");
 const morgan = require("morgan");
 const rateLimit = require("express-rate-limit");
 const mysql = require("mysql2/promise");
+const session = require("express-session");
+const passport = require("passport");
 
 const app = express();
 
@@ -43,6 +45,17 @@ mysql
     process.exit(1);
   });
 
+// Sesiones y autenticación
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET || "tussysecret",
+    resave: false,
+    saveUninitialized: false,
+  })
+);
+app.use(passport.initialize());
+app.use(passport.session());
+
 // Ruta Productos
 const productRoutes = require("./routes/productRoutes");
 app.use("/api/productos", productRoutes);
@@ -55,6 +68,10 @@ app.use("/api/ordenes", orderRoutes);
 app.get("/api/health", (req, res) => {
   res.json({ status: "ok", message: "Tussy Store API running" });
 });
+
+// Ruta de Autenticación
+const authRoutes = require("./routes/authRoutes");
+app.use("/api/auth", authRoutes);
 
 // Manejo de rutas no encontradas
 app.use((req, res, next) => {
