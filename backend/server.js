@@ -77,9 +77,6 @@ app.use("/api/usuario", userRoutes);
 const adminRoutes = require("./routes/adminRoutes");
 app.use("/api/admin", adminRoutes);
 
-const analyticsRoutes = require("./routes/analyticsRoutes");
-app.use("/api/analytics", analyticsRoutes);
-
 // Ruta de salud
 app.get("/api/health", (req, res) => {
   res.json({ status: "ok", message: "Tussy Store API running" });

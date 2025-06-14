@@ -40,21 +40,38 @@ router.delete("/:id", verifyToken, async (req, res) => {
   const usuario_id = req.user.id;
   const producto_id = req.params.id;
 
-  // LOG para depuración
-  console.log("Intentando eliminar favorito:", { usuario_id, producto_id });
-
   try {
-    const [result] = await req.app.locals.pool.query(
+    await pool.query(
       "DELETE FROM favoritos WHERE usuario_id = ? AND producto_id = ?",
       [usuario_id, producto_id]
     );
+    // Siempre responde ok, aunque no exista
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: "Error al eliminar favorito" });
+  }
+});
+
+router.post("/users/delete", verifyToken, async (req, res) => {
+  const { ids } = req.body;
+  if (!Array.isArray(ids) || ids.length === 0) {
+    return res
+      .status(400)
+      .json({ error: "No se enviaron usuarios a eliminar" });
+  }
+  try {
+    const [result] = await pool.query(
+      `DELETE FROM usuarios WHERE id IN (${ids.map(() => "?").join(",")})`,
+      ids
+    );
+    // Opcional: verifica si realmente se eliminaron filas
     if (result.affectedRows === 0) {
-      return res.status(404).json({ error: "Favorito no encontrado" });
+      return res.status(404).json({ error: "No se eliminaron usuarios" });
     }
     res.json({ ok: true });
   } catch (err) {
-    console.error("Error al eliminar favorito:", err);
-    res.status(500).json({ error: "Error al eliminar favorito" });
+    console.error("Error eliminando usuarios:", err);
+    res.status(500).json({ error: "Error eliminando usuarios" });
   }
 });
 

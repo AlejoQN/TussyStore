@@ -81,7 +81,21 @@ router.get("/categorias", async (req, res) => {
   }
 });
 
-// Obtener producto por ID
+// Obtener productos relacionados (debe ir ANTES de router.get("/:id"))
+router.get("/relacionados", async (req, res) => {
+  const { categoria, exclude } = req.query;
+  try {
+    const [items] = await pool.query(
+      "SELECT * FROM productos WHERE categoria = ? AND id != ? LIMIT 3",
+      [categoria, exclude]
+    );
+    res.json({ items });
+  } catch (err) {
+    res.status(500).json({ error: "Error obteniendo relacionados" });
+  }
+});
+
+// Obtener producto por ID (ESTO DEBE IR DESPUÉS)
 router.get("/:id", async (req, res) => {
   const { id } = req.params;
   try {
@@ -157,20 +171,6 @@ router.put("/:id", async (req, res) => {
   } catch (err) {
     console.error("Error actualizando producto:", err);
     res.status(500).json({ error: "Error actualizando producto" });
-  }
-});
-
-// Obtener productos relacionados
-router.get("/relacionados", async (req, res) => {
-  const { categoria, exclude } = req.query;
-  try {
-    const [items] = await pool.query(
-      "SELECT * FROM productos WHERE categoria = ? AND id != ? LIMIT 3",
-      [categoria, exclude]
-    );
-    res.json({ items });
-  } catch (err) {
-    res.status(500).json({ error: "Error obteniendo relacionados" });
   }
 });
 

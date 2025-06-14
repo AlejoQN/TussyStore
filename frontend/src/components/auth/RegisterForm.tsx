@@ -7,59 +7,86 @@ const initialState = {
   apellidos: "",
   email: "",
   edad: "",
+  telefono: "",
+  direccion: "",
   password: "",
   confirmPassword: "",
   acceptTerms: false,
   rol: "cliente",
+  foto: null as File | null,
 };
 
 export default function RegisterForm() {
   const [form, setForm] = useState(initialState);
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
+  const [error, setError] = useState<{ type: string; msg: string } | null>(
+    null
+  );
+  const [success, setSuccess] = useState<{ type: string; msg: string } | null>(
+    null
+  );
   const [showTerms, setShowTerms] = useState(false);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     const { name, value, type } = e.target;
-    setForm({
-      ...form,
-      [name]:
-        type === "checkbox" ? (e.target as HTMLInputElement).checked : value,
-    });
+    if (
+      name === "foto" &&
+      e.target instanceof HTMLInputElement &&
+      e.target.files
+    ) {
+      setForm({ ...form, foto: e.target.files[0] });
+    } else {
+      setForm({
+        ...form,
+        [name]:
+          type === "checkbox" ? (e.target as HTMLInputElement).checked : value,
+      });
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
-    setSuccess("");
+    setError(null);
+    setSuccess(null);
+
     if (form.password !== form.confirmPassword) {
-      setError("Las contraseñas no coinciden.");
+      setError({ type: "password", msg: "Las contraseñas no coinciden." });
       return;
     }
     if (!form.acceptTerms) {
-      setError("Debes aceptar los Términos y Políticas.");
+      setError({
+        type: "terms",
+        msg: "Debes aceptar los Términos y Políticas.",
+      });
       return;
     }
     try {
+      const formData = new FormData();
+      formData.append("nombre", `${form.nombres} ${form.apellidos}`);
+      formData.append("email", form.email);
+      formData.append("password", form.password);
+      formData.append("edad", form.edad);
+      formData.append("telefono", form.telefono);
+      formData.append("direccion", form.direccion);
+      formData.append("rol", form.rol);
+      if (form.foto) formData.append("foto", form.foto);
+
       const res = await fetch("/api/auth/register", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          nombre: `${form.nombres} ${form.apellidos}`,
-          email: form.email,
-          password: form.password,
-          edad: form.edad,
-          rol: form.rol,
-        }),
+        body: formData,
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Error en el registro");
-      setSuccess("¡Cuenta creada correctamente!");
+      if (!res.ok) {
+        if (data.error?.includes("registrado")) {
+          throw new Error("El email ya está registrado.");
+        }
+        throw new Error(data.error || "Error en el registro");
+      }
+      setSuccess({ type: "register", msg: "¡Cuenta creada correctamente!" });
       setForm(initialState);
     } catch (err: any) {
-      setError(err.message);
+      setError({ type: "server", msg: err.message });
     }
   };
 
@@ -91,19 +118,16 @@ export default function RegisterForm() {
         className="w-full max-w-xl mx-auto bg-white p-0 rounded-lg flex flex-col items-center"
         onSubmit={handleSubmit}
         style={{ minWidth: 400, marginTop: -100 }}
+        encType="multipart/form-data"
       >
-        {/* Título */}
-        <h2 className="text-5xl font-bold text-center mt-8 mb-4 text-black">
+        <h1 className="text-4xl font-bold mb-2 text-black text-center">
           Registro
-        </h2>
-        <p className="text-center mb-4 text-1xl -mt-2 text-black">
-          crea tu cuenta ya
-        </p>
-
-        {/* Inputs doble columna */}
-        <div className="flex w-full gap-4 mb-4">
+        </h1>
+        <p className="mb-6 text-center text-black">crea tu cuenta ya</p>
+        {/* Nombres y Apellidos */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full mb-4">
           <input
-            className="flex-1 border border-black rounded-xl p-3 text-lg placeholder-gray-400 text-black"
+            className="border border-black rounded-xl p-3 text-lg placeholder-gray-400 text-black"
             placeholder="Nombres"
             name="nombres"
             value={form.nombres}
@@ -111,7 +135,7 @@ export default function RegisterForm() {
             required
           />
           <input
-            className="flex-1 border border-black rounded-xl p-3 text-lg placeholder-gray-400 text-black"
+            className="border border-black rounded-xl p-3 text-lg placeholder-gray-400 text-black"
             placeholder="Apellidos"
             name="apellidos"
             value={form.apellidos}
@@ -119,9 +143,10 @@ export default function RegisterForm() {
             required
           />
         </div>
-        <div className="flex w-full gap-4 mb-4">
+        {/* Email y Edad */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full mb-4">
           <input
-            className="flex-1 border border-black rounded-xl p-3 text-lg placeholder-gray-400 text-black"
+            className="border border-black rounded-xl p-3 text-lg placeholder-gray-400 text-black"
             placeholder="Email"
             name="email"
             type="email"
@@ -130,45 +155,81 @@ export default function RegisterForm() {
             required
           />
           <select
-            className="flex-1 border border-black rounded-xl p-3 text-lg bg-white text-gray-400"
+            className="border border-black rounded-xl p-3 text-lg bg-white text-gray-400"
             name="edad"
             value={form.edad}
             onChange={handleChange}
             required
           >
             <option value="">Edad</option>
-            {[
-              { label: "18-22", value: "18-22" },
-              { label: "22-24", value: "22-24" },
-              { label: "24-26", value: "24-26" },
-              { label: "26-32", value: "26-32" },
-              { label: "+32", value: "+32" },
-            ].map((range) => (
-              <option key={range.value} value={range.value}>
-                {range.label}
-              </option>
-            ))}
+            <option value="18-22">18-22</option>
+            <option value="22-24">22-24</option>
+            <option value="24-26">24-26</option>
+            <option value="26-32">26-32</option>
+            <option value="+32">+32</option>
           </select>
         </div>
-        {/* Contraseña */}
-        <input
-          className="w-full border border-black rounded-xl p-3 text-lg mb-4 placeholder-gray-400 text-black"
-          placeholder="Contraseña"
-          name="password"
-          type="password"
-          value={form.password}
-          onChange={handleChange}
-          required
-        />
-        <input
-          className="w-full border border-black rounded-xl p-3 text-lg mb-4 placeholder-gray-400 text-black"
-          placeholder="Confirmar contraseña"
-          name="confirmPassword"
-          type="password"
-          value={form.confirmPassword}
-          onChange={handleChange}
-          required
-        />
+        {/* Teléfono y Foto de perfil */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full mb-4 items-end">
+          <input
+            className="border border-black rounded-xl p-3 text-lg placeholder-gray-400 text-black"
+            placeholder="Teléfono"
+            name="telefono"
+            type="tel"
+            value={form.telefono}
+            onChange={handleChange}
+            required
+          />
+          <div className="flex flex-col">
+            <label
+              htmlFor="foto"
+              className="text-sm font-semibold mb-1 text-black"
+            >
+              Foto de perfil
+            </label>
+            <input
+              className="border border-black rounded-xl p-2 text-black"
+              type="file"
+              name="foto"
+              id="foto"
+              accept="image/*"
+              onChange={handleChange}
+            />
+          </div>
+        </div>
+        {/* Dirección (una sola columna, ancho completo) */}
+        <div className="w-full mb-4">
+          <input
+            className="border border-black rounded-xl p-3 text-lg placeholder-gray-400 text-black w-full"
+            placeholder="Dirección"
+            name="direccion"
+            type="text"
+            value={form.direccion}
+            onChange={handleChange}
+            required
+          />
+        </div>
+        {/* Contraseña y Confirmar contraseña */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full mb-4">
+          <input
+            className="border border-black rounded-xl p-3 text-lg placeholder-gray-400 text-black"
+            placeholder="Contraseña"
+            name="password"
+            type="password"
+            value={form.password}
+            onChange={handleChange}
+            required
+          />
+          <input
+            className="border border-black rounded-xl p-3 text-lg placeholder-gray-400 text-black"
+            placeholder="Confirmar contraseña"
+            name="confirmPassword"
+            type="password"
+            value={form.confirmPassword}
+            onChange={handleChange}
+            required
+          />
+        </div>
         {/* Rol */}
         <select
           name="rol"
@@ -206,13 +267,13 @@ export default function RegisterForm() {
         </div>
         {/* Error/success */}
         {error && (
-          <div className="text-red-600 mb-2 text-sm w-full text-center">
-            {error}
+          <div className="text-red-600 mb-2 text-sm w-full text-center font-semibold">
+            {error.msg}
           </div>
         )}
         {success && (
-          <div className="text-green-600 mb-2 text-sm w-full text-center">
-            {success}
+          <div className="text-green-600 mb-2 text-sm w-full text-center font-semibold">
+            {success.msg}
           </div>
         )}
         {/* Botón crear cuenta */}

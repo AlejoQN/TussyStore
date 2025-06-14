@@ -5,8 +5,8 @@ import { useCheckout } from "../checkoutContext";
 import { useRouter } from "next/navigation";
 import { useUserCart } from "@/hooks/userCart";
 import axios from "axios";
-import { useMemo, useState } from "react";
-import { useAuth } from "@/hooks/useAuth"; // o tu hook/contexto de auth
+import { useMemo, useEffect, useState } from "react";
+import { useAuth } from "@/context/AuthContext";
 
 // Utilidad simple para estimar días de entrega según ciudad/municipio
 function estimarDiasEntrega(destino: string) {
@@ -36,6 +36,11 @@ export default function RevisionPedido() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const { token } = useAuth(); // o como obtengas el token
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Calcular subtotal, envio y total localmente
   const subtotal = useMemo(
@@ -90,6 +95,11 @@ export default function RevisionPedido() {
       setLoading(false);
     }
   };
+
+  if (!mounted) {
+    // Opcional: puedes mostrar un loader aquí
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-white text-black font-sans">

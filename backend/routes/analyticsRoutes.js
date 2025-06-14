@@ -1,7 +1,6 @@
 const express = require("express");
 const router = express.Router();
 
-// Ventas por día/semana/mes
 router.get("/ventas", async (req, res) => {
   const pool = req.app.locals.pool;
   const { periodo = "dia" } = req.query;
@@ -25,8 +24,6 @@ router.get("/ventas", async (req, res) => {
   );
   res.json(rows);
 });
-
-// Órdenes por día/semana/mes
 router.get("/ordenes", async (req, res) => {
   const pool = req.app.locals.pool;
   const { periodo = "dia" } = req.query;
@@ -49,8 +46,6 @@ router.get("/ordenes", async (req, res) => {
   );
   res.json(rows);
 });
-
-// Usuarios por día/semana/mes
 router.get("/usuarios", async (req, res) => {
   const pool = req.app.locals.pool;
   const { periodo = "dia" } = req.query;

@@ -4,7 +4,7 @@ import Footer from "@/components/common/Footer";
 import { useCheckout } from "../checkoutContext";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/context/AuthContext";
 import { useUserCart } from "@/hooks/userCart";
 import axios from "axios";
 

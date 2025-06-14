@@ -4,16 +4,17 @@ import Footer from "@/components/common/Footer";
 import { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import Link from "next/link";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/context/AuthContext";
+import { useRouter } from "next/navigation";
 
 export default function PerfilPage() {
-  const { token, setUser, loading } = useAuth();
+  const { token, setUser, loading, logout } = useAuth();
+  const router = useRouter();
   const [vista, setVista] = useState<
-    "datos" | "ordenes" | "favoritos" | "direcciones" | "eliminar"
+    "datos" | "ordenes" | "favoritos" | "direcciones"
   >("datos");
   const [form, setForm] = useState({
     nombres: "",
-    apellidos: "",
     telefono: "",
     correo: "",
     direccion: "",
@@ -29,12 +30,13 @@ export default function PerfilPage() {
   });
   const [passMsg, setPassMsg] = useState("");
 
-  const [editando, setEditando] = useState(false);
+  const [editando, setEditando] = useState(true); // Siempre en modo edición
+  const [showDeletePopup, setShowDeletePopup] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   // Cargar datos reales del usuario al montar
   useEffect(() => {
-    if (loading) return; // Espera a que el contexto termine de cargar
+    if (loading) return;
     if (!token) {
       setMensaje("No autenticado");
       setLoading(false);
@@ -53,7 +55,6 @@ export default function PerfilPage() {
             : data.foto || "";
         setForm({
           nombres: data.nombre || "",
-          apellidos: data.apellidos || "",
           correo: data.email || "",
           telefono: data.telefono || "",
           direccion: data.direccion || "",
@@ -105,16 +106,16 @@ export default function PerfilPage() {
           },
         }
       );
-        setUser &&
-          setUser((prev: any) => ({
-            ...prev,
-            nombre: form.nombres,
-            apellidos: form.apellidos,
-            telefono: form.telefono,
-            direccion: form.direccion,
-            foto: form.foto,
-            email: form.correo,
-          }));
+      setUser &&
+        setUser((prev: any) => ({
+          ...prev,
+          nombre: form.nombres,
+          telefono: form.telefono,
+          direccion: form.direccion,
+          foto: form.foto,
+          email: form.correo,
+        }));
+      setMensaje("Datos guardados correctamente");
       setTimeout(() => setMensaje(""), 2000);
     } catch {
       setMensaje("Error al guardar los datos");
@@ -168,13 +169,29 @@ export default function PerfilPage() {
         ...prev,
         foto: fotoUrl,
       }));
-      // Actualiza el contexto global
       setUser && setUser((prev: any) => ({ ...prev, foto: fotoUrl }));
       setMensaje("Foto actualizada correctamente");
       setTimeout(() => setMensaje(""), 2000);
     } catch {
       setMensaje("Error al subir la foto");
     }
+  };
+
+  const handleDeleteAccount = async () => {
+    try {
+      await axios.delete("/api/usuario/eliminar", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      logout();
+      router.push("/");
+    } catch (err) {
+      alert("Error eliminando la cuenta");
+    }
+  };
+
+  const handleLogout = () => {
+    logout();
+    router.push("/");
   };
 
   return (
@@ -194,9 +211,7 @@ export default function PerfilPage() {
               <div className="font-semibold text-sm text-gray-700 mt-2">
                 Hola <span className="text-lg">👋</span>
               </div>
-              <div className="font-bold">
-                {form.nombres} {form.apellidos}
-              </div>
+              <div className="font-bold">{form.nombres}</div>
             </div>
             <nav className="flex flex-col gap-0 mt-2">
               <Link
@@ -206,6 +221,7 @@ export default function PerfilPage() {
                     ? "bg-black text-white font-semibold"
                     : "hover:bg-gray-100"
                 }`}
+                onClick={() => setVista("datos")}
               >
                 <span className="inline-block w-5">
                   {/* SVG usuario */}
@@ -231,6 +247,7 @@ export default function PerfilPage() {
                     ? "bg-black text-white font-semibold"
                     : "hover:bg-gray-100"
                 }`}
+                onClick={() => setVista("ordenes")}
               >
                 <span className="inline-block w-5">
                   {/* SVG órdenes */}
@@ -260,6 +277,7 @@ export default function PerfilPage() {
                     ? "bg-black text-white font-semibold"
                     : "hover:bg-gray-100"
                 }`}
+                onClick={() => setVista("favoritos")}
               >
                 <span className="inline-block w-5">
                   {/* SVG corazón */}
@@ -284,6 +302,7 @@ export default function PerfilPage() {
                     ? "bg-black text-white font-semibold"
                     : "hover:bg-gray-100"
                 }`}
+                onClick={() => setVista("direcciones")}
               >
                 <span className="inline-block w-5">
                   {/* SVG ubicación */}
@@ -303,9 +322,10 @@ export default function PerfilPage() {
                 Mis Direcciones
               </Link>
             </nav>
-            <Link
-              href="/perfil/eliminar"
+            <button
               className="text-xs text-red-500 hover:underline px-6 py-3 text-left flex items-center"
+              onClick={() => setShowDeletePopup(true)}
+              type="button"
             >
               <span className="inline-block w-4 mr-2 align-middle">
                 <svg
@@ -321,7 +341,7 @@ export default function PerfilPage() {
                 </svg>
               </span>
               Eliminar Cuenta
-            </Link>
+            </button>
           </aside>
           {/* Formulario principal */}
           {vista === "datos" && (
@@ -333,30 +353,27 @@ export default function PerfilPage() {
                     alt="Foto de perfil"
                     className="w-28 h-28 rounded-full object-cover border shadow"
                   />
-                  {/* Botón para cambiar foto, visible solo en modo edición */}
-                  {editando && (
-                    <button
-                      type="button"
-                      className="absolute bottom-2 right-2 bg-black text-white rounded-full p-2 text-xs"
-                      onClick={() => fileInputRef.current?.click()}
-                      title="Cambiar foto"
+                  <button
+                    type="button"
+                    className="absolute bottom-2 right-2 bg-black text-white rounded-full p-2 text-xs"
+                    onClick={() => fileInputRef.current?.click()}
+                    title="Cambiar foto"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-5 w-5"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
                     >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-5 w-5"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M15.232 5.232l3.536 3.536M9 13l6.586-6.586a2 2 0 112.828 2.828L11.828 15.828a4 4 0 01-2.828 1.172H7v-2a4 4 0 011.172-2.828z"
-                        />
-                      </svg>
-                    </button>
-                  )}
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M15.232 5.232l3.536 3.536M9 13l6.586-6.586a2 2 0 112.828 2.828L11.828 15.828a4 4 0 01-2.828 1.172H7v-2a4 4 0 011.172-2.828z"
+                      />
+                    </svg>
+                  </button>
                   <input
                     type="file"
                     accept="image/*"
@@ -393,19 +410,20 @@ export default function PerfilPage() {
                     required
                   />
                 </div>
-                <div>
-                  <label className="block text-sm font-semibold mb-1">
-                    Correo Electronico
-                  </label>
-                  <input
-                    type="email"
-                    name="correo"
-                    value={form.correo}
-                    onChange={handleChange}
-                    className="w-full border rounded px-3 py-2"
-                    required
-                  />
-                </div>
+              </div>
+              {/* Correo Electronico (una sola columna, ancho completo) */}
+              <div className="mb-6">
+                <label className="block text-sm font-semibold mb-1">
+                  Correo Electronico
+                </label>
+                <input
+                  type="email"
+                  name="correo"
+                  value={form.correo}
+                  onChange={handleChange}
+                  className="w-full border rounded px-3 py-2"
+                  required
+                />
               </div>
               <div className="mb-6">
                 <label className="block text-sm font-semibold mb-1">
@@ -421,22 +439,12 @@ export default function PerfilPage() {
                 />
               </div>
               <div className="flex justify-end gap-3">
-                {!editando ? (
-                  <button
-                    type="button"
-                    className="bg-primary text-white px-8 py-2 rounded font-semibold"
-                    onClick={() => setEditando(true)}
-                  >
-                    Editar
-                  </button>
-                ) : (
-                  <button
-                    type="submit"
-                    className="bg-primary text-white px-8 py-2 rounded font-semibold"
-                  >
-                    Guardar cambios
-                  </button>
-                )}
+                <button
+                  type="submit"
+                  className="bg-primary text-white px-8 py-2 rounded font-semibold"
+                >
+                  Guardar cambios
+                </button>
               </div>
               {mensaje && (
                 <div className="mt-4 text-green-600 font-semibold">
@@ -454,11 +462,6 @@ export default function PerfilPage() {
           {vista === "direcciones" && (
             <div className="flex-1">
               {/* Aquí irá la vista de direcciones */}
-            </div>
-          )}
-          {vista === "eliminar" && (
-            <div className="flex-1">
-              {/* Aquí irá la vista de eliminar cuenta */}
             </div>
           )}
         </div>
@@ -553,6 +556,28 @@ export default function PerfilPage() {
         )}
       </main>
       <Footer />
+      {showDeletePopup && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-8 shadow-lg text-center max-w-md w-full">
+            <div className="text-xl font-bold mb-4">Eliminar cuenta</div>
+            <div className="mb-6 text-gray-700">
+              ¿Estás seguro de eliminar tu cuenta?
+            </div>
+            <button
+              className="w-full py-2 rounded bg-red-100 text-red-600 font-semibold hover:bg-red-200 mb-2"
+              onClick={handleDeleteAccount}
+            >
+              Eliminar
+            </button>
+            <button
+              className="w-full py-2 rounded bg-gray-100 text-gray-700 font-semibold hover:bg-gray-200"
+              onClick={() => setShowDeletePopup(false)}
+            >
+              Cancelar
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

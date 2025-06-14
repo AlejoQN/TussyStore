@@ -13,8 +13,12 @@ export default function LoginPage() {
   });
   const [remember, setRemember] = useState(false);
   const [show, setShow] = useState(false);
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
+  const [error, setError] = useState<{ type: string; msg: string } | null>(
+    null
+  );
+  const [success, setSuccess] = useState<{ type: string; msg: string } | null>(
+    null
+  );
 
   useEffect(() => {
     const savedEmail = localStorage.getItem("tussy_remember_email");
@@ -27,16 +31,30 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
-    setSuccess("");
+    setError(null);
+    setSuccess(null);
     try {
       await login(form.email, form.password); // Esto debe guardar token y user en contexto y localStorage
-      setSuccess("¡Inicio de sesión exitoso!");
-      setTimeout(() => {
-        router.push("/"); // Redirige a la homepage después de mostrar el mensaje
-      }, 1200);
+      setSuccess({ type: "login", msg: "¡Inicio de sesión exitoso!" });
+      setTimeout(() => router.push("/"), 1200);
     } catch (err: any) {
-      setError(err.message || "Error en el login");
+      // Si el backend responde con un mensaje específico, úsalo
+      if (err.response?.data?.error === "Credenciales inválidas") {
+        setError({
+          type: "credentials",
+          msg: "El email o la contraseña son incorrectos.",
+        });
+      } else if (err.response?.data?.error) {
+        setError({
+          type: "server",
+          msg: err.response.data.error,
+        });
+      } else {
+        setError({
+          type: "server",
+          msg: "Ocurrió un error inesperado. Intenta de nuevo.",
+        });
+      }
     }
 
     if (remember) {
@@ -165,14 +183,14 @@ export default function LoginPage() {
         </div>
         {/* Error */}
         {error && (
-          <div className="text-red-600 mb-2 text-sm w-full text-center">
-            {error}
+          <div className="text-red-600 mb-2 text-sm w-full text-center font-semibold">
+            {error.msg}
           </div>
         )}
         {/* Success */}
         {success && (
-          <div className="text-green-600 mb-2 text-sm w-full text-center">
-            {success}
+          <div className="text-green-600 mb-2 text-sm w-full text-center font-semibold">
+            {success.msg}
           </div>
         )}
         {/* Botón iniciar sesión */}

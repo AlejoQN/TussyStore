@@ -2,13 +2,17 @@ import React from "react";
 
 type Props = {
   vista: string;
-  setVista: (v: any) => void;
-  user?: {
-    foto?: string;
-  };
+  setVista: (v: string) => void;
+  user: any;
+  onEliminarCuenta: () => void;
 };
 
-export default function PerfilSidebar({ vista, setVista, user }: Props) {
+export default function PerfilSidebar({
+  vista,
+  setVista,
+  user,
+  onEliminarCuenta,
+}: Props) {
   return (
     <aside className="w-full md:w-64 bg-gray-50 border-r border-gray-200 p-4 flex md:flex-col gap-2 md:gap-4">
       <img
@@ -28,17 +32,15 @@ export default function PerfilSidebar({ vista, setVista, user }: Props) {
         }`}
         onClick={() => setVista("datos")}
       >
-        Datos personales
+        Información personal
       </button>
       <button
         className={`text-left w-full py-2 px-3 rounded ${
-          vista === "direcciones"
-            ? "bg-primary text-white"
-            : "hover:bg-gray-100"
+          vista === "ordenes" ? "bg-primary text-white" : "hover:bg-gray-100"
         }`}
-        onClick={() => setVista("direcciones")}
+        onClick={() => setVista("ordenes")}
       >
-        Mis direcciones
+        Mis ordenes
       </button>
       <button
         className={`text-left w-full py-2 px-3 rounded ${
@@ -50,21 +52,21 @@ export default function PerfilSidebar({ vista, setVista, user }: Props) {
       </button>
       <button
         className={`text-left w-full py-2 px-3 rounded ${
-          vista === "ordenes" ? "bg-primary text-white" : "hover:bg-gray-100"
+          vista === "direcciones"
+            ? "bg-primary text-white"
+            : "hover:bg-gray-100"
         }`}
-        onClick={() => setVista("ordenes")}
+        onClick={() => setVista("direcciones")}
       >
-        Mis órdenes
+        Mis Direcciones
       </button>
+      {/* Botón eliminar cuenta, diseño igual que los demás */}
       <button
-        className={`text-left w-full py-2 px-3 rounded ${
-          vista === "eliminar"
-            ? "bg-red-500 text-white"
-            : "hover:bg-red-100 text-red-500"
-        }`}
-        onClick={() => setVista("eliminar")}
+        className="text-left w-full py-2 px-3 rounded hover:bg-red-100 text-red-500 mt-2"
+        onClick={onEliminarCuenta}
+        type="button"
       >
-        Eliminar cuenta
+        Eliminar Cuenta
       </button>
     </aside>
   );

@@ -3,7 +3,7 @@ import Header from "@/components/common/Header";
 import Footer from "@/components/common/Footer";
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/context/AuthContext";
 import Link from "next/link";
 import PerfilSidebar from "@/components/perfil/PerfilSidebar";
 import { useRouter } from "next/navigation";
@@ -74,9 +74,9 @@ export default function PerfilOrdenes() {
       if (!prod) continue;
       for (let i = 0; i < (prod.cantidad || 1); i++) {
         await addToCart({
-          producto_id: prod.producto_id || prod.id,
+          producto_id: prod.producto_id ?? prod.id ?? 0,
           nombre: prod.nombre,
-          imagen: prod.imagen,
+          imagen: prod.imagen || "",
           precio: prod.precio,
           cantidad: 1,
           talla: prod.talla || "",

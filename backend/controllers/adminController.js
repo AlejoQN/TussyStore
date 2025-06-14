@@ -22,16 +22,6 @@ exports.getOverview = async (req, res) => {
       "SELECT IFNULL(SUM(total),0) as balance FROM pedidos WHERE estado='Completado'"
     );
 
-    // Ventas por día (últimos 7 días)
-    const [ventas] = await pool.query(`
-      SELECT DATE(fecha) as label, SUM(total) as total
-      FROM pedidos
-      WHERE estado='Completado'
-      GROUP BY DATE(fecha)
-      ORDER BY label DESC
-      LIMIT 7
-    `);
-
     // Órdenes recientes (últimas 5)
     const [ordenesRecientes] = await pool.query(`
       SELECT p.id, u.nombre AS usuario_nombre, pr.nombre AS producto_nombre, c.nombre AS categoria_nombre, (op.precio_unitario * op.cantidad) AS costo, p.estado
@@ -51,7 +41,6 @@ exports.getOverview = async (req, res) => {
         clientes: clientes || 0,
         balance: balance || 0,
       },
-      ventas,
       ordenesRecientes,
     });
   } catch (err) {

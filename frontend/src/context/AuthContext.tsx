@@ -1,6 +1,7 @@
 "use client";
 import { createContext, useContext, useState, useEffect } from "react";
 import axios from "axios";
+import { useRouter } from "next/navigation";
 
 type User = {
   id: number;
@@ -8,6 +9,8 @@ type User = {
   email: string;
   rol?: string;
   foto?: string;
+  telefono?: string;
+  direccion?: string;
 };
 
 type AuthContextType = {
@@ -17,23 +20,28 @@ type AuthContextType = {
   logout: () => void;
   register: (data: any) => Promise<void>;
   loading: boolean;
+  setUser: (user: User | null) => void;
+  setToken: (token: string | null) => void;
 };
 
 export const AuthContext = createContext<AuthContextType>({
   user: null,
   token: null,
-  login: async (email: string, password: string) => {},
+  login: async () => {},
   logout: () => {},
   register: async () => {},
   loading: true,
+  setUser: () => {},
+  setToken: () => {},
 });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
-  // Cargar usuario desde localStorage al iniciar
+  // Cargar usuario y token desde localStorage al iniciar
   useEffect(() => {
     const t = localStorage.getItem("tussy_token");
     const u = localStorage.getItem("tussy_user");
@@ -71,6 +79,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(null);
     localStorage.removeItem("tussy_token");
     localStorage.removeItem("tussy_user");
+    router.push("/"); // Redirige a la homepage
   };
 
   // Register
@@ -78,21 +87,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await axios.post("/api/auth/register", form);
   };
 
-  if (token) {
-    axios.get("/api/usuario/perfil", {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-  }
-
   return (
     <AuthContext.Provider
-      value={{ user, token, login, logout, register, loading }}
+      value={{
+        user,
+        token,
+        login,
+        logout,
+        register,
+        loading,
+        setUser,
+        setToken,
+      }}
     >
       {children}
     </AuthContext.Provider>
   );
 }
 
+// Hook para acceder fácilmente al contexto
 export function useAuth() {
   const ctx = useContext(AuthContext);
   if (!ctx) throw new Error("useAuth debe usarse dentro de AuthProvider");

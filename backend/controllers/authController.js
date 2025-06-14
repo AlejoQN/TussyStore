@@ -7,7 +7,8 @@ const path = require("path");
 
 // 1. Registro de usuario
 exports.register = async (req, res) => {
-  const { nombre, email, password, edad, rol } = req.body;
+  const { nombre, email, password, edad, rol, telefono, direccion } = req.body;
+  const foto = req.file ? req.file.filename : null;
   try {
     const [rows] = await pool.query("SELECT id FROM usuarios WHERE email = ?", [
       email,
@@ -17,8 +18,8 @@ exports.register = async (req, res) => {
     }
     const hashed = await bcrypt.hash(password, 10);
     await pool.query(
-      "INSERT INTO usuarios (nombre, email, password, edad, rol) VALUES (?, ?, ?, ?, ?)",
-      [nombre, email, hashed, edad, rol || "cliente"]
+      "INSERT INTO usuarios (nombre, email, password, edad, rol, telefono, direccion, foto) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+      [nombre, email, hashed, edad, rol || "cliente", telefono, direccion, foto]
     );
     res.status(201).json({ message: "Usuario registrado correctamente" });
   } catch (err) {

@@ -15,6 +15,11 @@ export default function Home() {
   const [destacados, setDestacados] = useState<any[]>([]);
   const [masVendidos, setMasVendidos] = useState<any[]>([]);
   const [interesantes, setInteresantes] = useState<any[]>([]);
+  const [notificacion, setNotificacion] = useState<{
+    tipo: "success" | "error";
+    mensaje: string;
+  } | null>(null);
+  const [productoAgregado, setProductoAgregado] = useState<number | null>(null);
 
   useEffect(() => {
     axios.get("/api/productos?destacados=true").then((res) => {
@@ -104,9 +109,57 @@ export default function Home() {
         : [],
   }));
 
+  // Notificación temporal
+  const showNotificacion = (tipo: "success" | "error", mensaje: string) => {
+    setNotificacion({ tipo, mensaje });
+    setTimeout(() => setNotificacion(null), 2000);
+  };
+
+  // Al agregar al carrito, también marca el corazón como favorito temporalmente
+  const handleAddToCart = (prod: any) => {
+    addToCart({
+      producto_id: prod.id,
+      nombre: prod.nombre,
+      imagen: prod.imagen,
+      talla: prod.tallas?.[0] || "",
+      color: prod.colores?.[0] || "",
+      precio: prod.precio,
+      cantidad: 1,
+      stock: prod.stock,
+    });
+    setProductoAgregado(prod.id);
+    showNotificacion("success", "Producto agregado al carrito");
+    // Marca como favorito visualmente por 2 segundos
+    setTimeout(() => setProductoAgregado(null), 2000);
+  };
+
+  // Favorito real
+  const handleToggleFavorite = (prod: any, e: React.MouseEvent) => {
+    e?.stopPropagation?.();
+    if (isFavorito(prod.id)) {
+      removeFavorito(prod.id);
+      showNotificacion("success", "Producto eliminado de favoritos");
+    } else {
+      addFavorito(prod.id);
+      showNotificacion("success", "Producto agregado a favoritos");
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-white text-black">
       <Header />
+      {/* Notificación */}
+      {notificacion && (
+        <div
+          className={`fixed top-6 left-1/2 -translate-x-1/2 z-50 px-6 py-3 rounded shadow-lg font-semibold ${
+            notificacion.tipo === "success"
+              ? "bg-green-100 text-green-700"
+              : "bg-red-100 text-red-700"
+          }`}
+        >
+          {notificacion.mensaje}
+        </div>
+      )}
       {/* Banner principal */}
       <div className="w-full h-64 md:h-80 flex items-center justify-center mb-8">
         <img
@@ -130,25 +183,11 @@ export default function Home() {
               >
                 <ProductCard
                   {...prod}
-                  favorito={isFavorito(prod.id)}
-                  onToggleFavorite={(e: React.MouseEvent) => {
-                    e?.stopPropagation?.();
-                    isFavorito(prod.id)
-                      ? removeFavorito(prod.id)
-                      : addFavorito(prod.id);
-                  }}
-                  onAddToCart={() =>
-                    addToCart({
-                      producto_id: prod.id,
-                      nombre: prod.nombre,
-                      imagen: prod.imagen,
-                      talla: prod.tallas?.[0] || "",
-                      color: prod.colores?.[0] || "",
-                      precio: prod.precio,
-                      cantidad: 1,
-                      stock: prod.stock,
-                    })
+                  favorito={isFavorito(prod.id) || productoAgregado === prod.id}
+                  onToggleFavorite={(e: React.MouseEvent) =>
+                    handleToggleFavorite(prod, e)
                   }
+                  onAddToCart={() => handleAddToCart(prod)}
                 />
               </div>
             ))}
@@ -168,18 +207,11 @@ export default function Home() {
               >
                 <ProductCard
                   {...prod}
-                  onAddToCart={() =>
-                    addToCart({
-                      producto_id: prod.id,
-                      nombre: prod.nombre,
-                      imagen: prod.imagen,
-                      talla: prod.tallas?.[0] || "",
-                      color: prod.colores?.[0] || "",
-                      precio: prod.precio,
-                      cantidad: 1,
-                      stock: prod.stock,
-                    })
+                  favorito={isFavorito(prod.id) || productoAgregado === prod.id}
+                  onToggleFavorite={(e: React.MouseEvent) =>
+                    handleToggleFavorite(prod, e)
                   }
+                  onAddToCart={() => handleAddToCart(prod)}
                 />
               </div>
             ))}

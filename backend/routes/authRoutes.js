@@ -1,11 +1,20 @@
 const express = require("express");
 const router = express.Router();
 const authController = require("../controllers/authController");
-const { loginLimiter } = require("../middleware/security");
-const passport = require("passport");
+const multer = require("multer");
+const path = require("path");
+const { loginLimiter } = require("../middleware/security"); // <-- AGREGA ESTA LÍNEA
 
-// Registro
-router.post("/register", authController.register);
+// Configuración de multer para la foto de perfil
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, "uploads/"),
+  filename: (req, file, cb) =>
+    cb(null, Date.now() + path.extname(file.originalname)),
+});
+const upload = multer({ storage });
+
+// Registro (usa multer para procesar form-data)
+router.post("/register", upload.single("foto"), authController.register);
 
 // Login (con rate limit)
 router.post("/login", loginLimiter, authController.login);

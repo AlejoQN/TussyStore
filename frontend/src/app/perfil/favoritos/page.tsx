@@ -5,6 +5,9 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { useAuth } from "@/context/AuthContext";
 import Link from "next/link";
+import { useRouter, useParams } from "next/navigation";
+import { useUserCart } from "@/hooks/userCart";
+import { useFavoritos } from "@/hooks/useFavoritos";
 
 type Favorito = {
   id: number;
@@ -15,10 +18,46 @@ type Favorito = {
   color?: string;
 };
 
+interface Producto {
+  id: number;
+  nombre: string;
+  descripcion: string;
+  precio: number;
+  descuento?: number;
+  imagen: string;
+  imagenes?: string[];
+  tallas?: string[];
+  colores?: string[];
+  stock: number;
+  categoria: number;
+}
+
 export default function PerfilFavoritos() {
   const { token, user } = useAuth();
   const [favoritos, setFavoritos] = useState<Favorito[]>([]);
   const [busqueda, setBusqueda] = useState("");
+  const { id } = useParams();
+  const router = useRouter();
+  const { addToCart } = useUserCart();
+  const { isFavorito, addFavorito, removeFavorito } = useFavoritos();
+
+  const [producto, setProducto] = useState<Producto | null>(null);
+  const [cantidad, setCantidad] = useState(1);
+  const [talla, setTalla] = useState<string>("");
+  const [tab, setTab] = useState<"descripcion" | "info">("descripcion");
+  const [imgPrincipal, setImgPrincipal] = useState<string>("");
+  const [relacionados, setRelacionados] = useState<Producto[]>([]);
+  const [notificacion, setNotificacion] = useState<{
+    tipo: "success" | "error";
+    mensaje: string;
+  } | null>(null);
+  const [vista, setVista] = useState<"favoritos" | "producto">("favoritos");
+
+  // Mostrar notificación temporal
+  const showNotificacion = (tipo: "success" | "error", mensaje: string) => {
+    setNotificacion({ tipo, mensaje });
+    setTimeout(() => setNotificacion(null), 2000);
+  };
 
   useEffect(() => {
     if (!token) return;
@@ -53,6 +92,100 @@ export default function PerfilFavoritos() {
     // Opcional: feedback visual
   };
 
+  // ARREGLA EL ERROR DE RELACIONADOS: asegúrate de que la ruta exista en el backend (ver más abajo)
+  useEffect(() => {
+    if (producto) {
+      axios
+        .get(
+          `/api/productos/relacionados?categoria=${producto.categoria}&exclude=${producto.id}`
+        )
+        .then((res) => {
+          const getImgUrl = (img: string) =>
+            img
+              ? img.startsWith("http")
+                ? img
+                : `/uploads/${img.replace(/^\/?uploads\//, "")}`
+              : "/img/no-image.png";
+          setRelacionados(
+            res.data.items.map((prod: any) => ({
+              ...prod,
+              imagen: getImgUrl(prod.imagen),
+            }))
+          );
+        })
+        .catch(() => setRelacionados([]));
+    }
+  }, [producto]);
+
+  useEffect(() => {
+    if (!id) return;
+    axios.get(`/api/productos/${id}`).then((res) => {
+      const p = res.data;
+      const getImgUrl = (img: string) =>
+        img
+          ? img.startsWith("http")
+            ? img
+            : `/uploads/${img.replace(/^\/?uploads\//, "")}`
+          : "/img/no-image.png";
+      setProducto({
+        ...p,
+        imagen: getImgUrl(p.imagen),
+        imagenes: p.imagenes
+          ? p.imagenes.map((img: string) => getImgUrl(img))
+          : [getImgUrl(p.imagen)],
+        tallas:
+          typeof p.tallas === "string"
+            ? p.tallas.split(",").map((t: string) => t.trim())
+            : [],
+        colores:
+          typeof p.colores === "string"
+            ? p.colores.split(",").map((c: string) => c.trim())
+            : [],
+      });
+      setImgPrincipal(getImgUrl(p.imagen));
+      setTalla(
+        typeof p.tallas === "string" ? p.tallas.split(",")[0]?.trim() || "" : ""
+      );
+    });
+  }, [id]);
+
+  if (!producto) {
+    return (
+      <div>
+        <Header />
+        <main className="p-8 text-center text-red-500">
+          Producto no encontrado
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  // Cambia el corazón a rojo si es favorito
+  const handleToggleFavorito = async () => {
+    if (isFavorito(producto.id)) {
+      await removeFavorito(producto.id);
+      showNotificacion("success", "Producto eliminado de favoritos");
+    } else {
+      await addFavorito(producto.id);
+      showNotificacion("success", "Producto agregado a favoritos");
+    }
+  };
+
+  const handleAddToCart = () => {
+    addToCart({
+      producto_id: producto.id,
+      nombre: producto.nombre,
+      imagen: producto.imagen,
+      talla,
+      color: producto.colores?.[0] || "",
+      precio: producto.precio,
+      cantidad,
+      stock: producto.stock,
+    });
+    showNotificacion("success", "Producto agregado al carrito");
+  };
+
   const favoritosFiltrados = favoritos.filter((f) =>
     f.nombre.toLowerCase().includes(busqueda.toLowerCase())
   );
@@ -60,6 +193,18 @@ export default function PerfilFavoritos() {
   return (
     <div className="min-h-screen bg-white text-black flex flex-col">
       <Header />
+      {/* Notificación */}
+      {notificacion && (
+        <div
+          className={`fixed top-6 left-1/2 -translate-x-1/2 z-50 px-6 py-3 rounded shadow-lg font-semibold ${
+            notificacion.tipo === "success"
+              ? "bg-green-100 text-green-700"
+              : "bg-red-100 text-red-700"
+          }`}
+        >
+          {notificacion.mensaje}
+        </div>
+      )}
       <main className="flex-1 max-w-6xl mx-auto w-full px-2 sm:px-4 py-8">
         <h1 className="text-3xl font-bold mb-8 mt-4">Mi perfil</h1>
         <div className="flex flex-col lg:flex-row gap-10">

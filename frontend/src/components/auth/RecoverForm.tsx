@@ -5,26 +5,38 @@ import { useRouter } from "next/navigation";
 
 export default function RecoverForm() {
   const [email, setEmail] = useState("");
-  const [success, setSuccess] = useState("");
-  const [error, setError] = useState("");
+  const [error, setError] = useState<{ type: string; msg: string } | null>(
+    null
+  );
+  const [success, setSuccess] = useState<{ type: string; msg: string } | null>(
+    null
+  );
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSuccess("");
-    setError("");
-    // Aquí tu lógica de petición a la API
+    setError(null);
+    setSuccess(null);
     try {
       const res = await fetch("/api/auth/recuperar", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
       });
-      if (!res.ok) throw new Error("No se pudo enviar el mail.");
-      setSuccess("¡Revisa tu correo para recuperar tu contraseña!");
+      const data = await res.json();
+      if (!res.ok) {
+        if (data.error?.includes("no registrado")) {
+          throw new Error("El email no está registrado.");
+        }
+        throw new Error(data.error || "No se pudo enviar el mail.");
+      }
+      setSuccess({
+        type: "recover",
+        msg: "¡Revisa tu correo para recuperar tu contraseña!",
+      });
       setEmail("");
     } catch (err: any) {
-      setError(err.message);
+      setError({ type: "server", msg: err.message });
     }
   };
 
@@ -83,13 +95,13 @@ export default function RecoverForm() {
         />
 
         {error && (
-          <div className="text-red-600 mb-2 text-sm w-full text-center">
-            {error}
+          <div className="text-red-600 mb-2 text-sm w-full text-center font-semibold">
+            {error.msg}
           </div>
         )}
         {success && (
-          <div className="text-green-600 mb-2 text-sm w-full text-center">
-            {success}
+          <div className="text-green-600 mb-2 text-sm w-full text-center font-semibold">
+            {success.msg}
           </div>
         )}
 

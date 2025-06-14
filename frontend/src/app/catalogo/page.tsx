@@ -1,39 +1,38 @@
 "use client";
-import React, { useState, useEffect } from "react";
-import Header from "@/components/common/Header";
-import Footer from "@/components/common/Footer";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { useUserCart } from "@/hooks/userCart";
 import { useFavoritos } from "@/hooks/useFavoritos";
-import axios from "axios";
 import ProductCard from "@/components/products/productCard";
-import { useRouter } from "next/navigation";
-
-interface Producto {
-  id: number;
-  nombre: string;
-  descripcion: string;
-  precio: number;
-  descuento: number;
-  imagen: string;
-  stock: number;
-  tallas?: string[];
-  colores?: string[];
-}
+import Header from "@/components/common/Header";
+import Footer from "@/components/common/Footer";
+import axios from "axios";
 
 const PAGE_SIZE = 12;
 const PRECIO_MIN = 0;
-const PRECIO_MAX = 400000;
+const PRECIO_MAX = 2000000;
 
 export default function CatalogoPage() {
-  const [productos, setProductos] = useState<Producto[]>([]);
+  const [productos, setProductos] = useState<any[]>([]);
   const [busqueda, setBusqueda] = useState("");
   const [precioMin, setPrecioMin] = useState(PRECIO_MIN);
   const [precioMax, setPrecioMax] = useState(PRECIO_MAX);
   const [pagina, setPagina] = useState(1);
 
+  const [notificacion, setNotificacion] = useState<{
+    tipo: "success" | "error";
+    mensaje: string;
+  } | null>(null);
+
   const { addToCart } = useUserCart();
   const { favoritos, addFavorito, removeFavorito, isFavorito } = useFavoritos();
   const router = useRouter();
+
+  // Mostrar notificación temporal tipo pop-up
+  const showNotificacion = (tipo: "success" | "error", mensaje: string) => {
+    setNotificacion({ tipo, mensaje });
+    setTimeout(() => setNotificacion(null), 2000);
+  };
 
   useEffect(() => {
     axios.get("/api/productos").then((res) => {
@@ -80,10 +79,48 @@ export default function CatalogoPage() {
     setPagina(1);
   };
 
+  // Acciones con notificación
+  const handleAddToCart = (prod: any) => {
+    addToCart({
+      producto_id: prod.id,
+      nombre: prod.nombre,
+      imagen: prod.imagen,
+      talla: prod.tallas?.[0] || "",
+      color: prod.colores?.[0] || "",
+      precio: prod.precio,
+      cantidad: 1,
+      stock: prod.stock,
+    });
+    showNotificacion("success", "Producto agregado al carrito");
+  };
+
+  const handleToggleFavorite = (prod: any, e: React.MouseEvent) => {
+    e?.stopPropagation?.();
+    if (isFavorito(prod.id)) {
+      removeFavorito(prod.id);
+      showNotificacion("success", "Producto eliminado de favoritos");
+    } else {
+      addFavorito(prod.id);
+      showNotificacion("success", "Producto agregado a favoritos");
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-white text-black font-sans">
+    <div className="min-h-screen bg-white text-black font-sans flex flex-col">
       <Header />
-      <main className="max-w-7xl mx-auto px-2 py-8 w-full flex flex-col">
+      {/* Notificación tipo pop-up */}
+      {notificacion && (
+        <div
+          className={`fixed top-6 left-1/2 -translate-x-1/2 z-50 px-6 py-3 rounded shadow-lg font-semibold ${
+            notificacion.tipo === "success"
+              ? "bg-green-100 text-green-700"
+              : "bg-red-100 text-red-700"
+          }`}
+        >
+          {notificacion.mensaje}
+        </div>
+      )}
+      <main className="max-w-7xl mx-auto px-2 py-8 w-full flex flex-col flex-1">
         {/* Fila de búsqueda y filtro de precio */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
           <input
@@ -122,48 +159,45 @@ export default function CatalogoPage() {
                 className="w-full h-2 bg-gray-200 rounded appearance-none z-10"
                 style={{ accentColor: "#000" }}
               />
+              {/* Barra visual de rango */}
+              <div
+                className="absolute top-1/2 left-0 h-2 bg-black rounded"
+                style={{
+                  width: `${
+                    ((precioMax - precioMin) / (PRECIO_MAX - PRECIO_MIN)) * 100
+                  }%`,
+                  left: `${
+                    ((precioMin - PRECIO_MIN) / (PRECIO_MAX - PRECIO_MIN)) * 100
+                  }%`,
+                  right: `${
+                    100 -
+                    ((precioMax - PRECIO_MIN) / (PRECIO_MAX - PRECIO_MIN)) * 100
+                  }%`,
+                  transform: "translateY(-50%)",
+                  zIndex: 0,
+                }}
+              />
             </div>
           </div>
         </div>
-        {/* Grid de productos */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-8">
-          {productosPagina.length === 0 ? (
-            <div className="col-span-full text-center text-gray-500 py-12">
-              No se encontraron productos.
+        {/* Productos */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+          {productosPagina.map((p, idx) => (
+            <div
+              key={`${p.id}-${idx}`}
+              className="cursor-pointer"
+              onClick={() => router.push(`/catalogo/${p.id}`)}
+            >
+              <ProductCard
+                {...p}
+                favorito={isFavorito(p.id)}
+                onToggleFavorite={(e: React.MouseEvent) =>
+                  handleToggleFavorite(p, e)
+                }
+                onAddToCart={() => handleAddToCart(p)}
+              />
             </div>
-          ) : (
-            productosPagina.map((p) => (
-              <div
-                key={p.id}
-                className="cursor-pointer"
-                onClick={() => router.push(`/catalogo/${p.id}`)}
-              >
-                <ProductCard
-                  nombre={p.nombre}
-                  imagen={p.imagen}
-                  precio={p.precio}
-                  descuento={p.descuento}
-                  descripcion={p.descripcion}
-                  favorito={isFavorito(p.id)}
-                  onToggleFavorite={() => {
-                    isFavorito(p.id) ? removeFavorito(p.id) : addFavorito(p.id);
-                  }}
-                  onAddToCart={() => {
-                    addToCart({
-                      producto_id: p.id,
-                      nombre: p.nombre,
-                      imagen: p.imagen,
-                      precio: p.precio,
-                      cantidad: 1,
-                      talla: "",
-                      color: "",
-                      stock: p.stock,
-                    });
-                  }}
-                />
-              </div>
-            ))
-          )}
+          ))}
         </div>
         {/* Paginación */}
         {totalPaginas > 1 && (

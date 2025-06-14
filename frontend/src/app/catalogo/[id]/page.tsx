@@ -33,6 +33,16 @@ export default function VistaProducto() {
   const [tab, setTab] = useState<"descripcion" | "info">("descripcion");
   const [imgPrincipal, setImgPrincipal] = useState<string>("");
   const [relacionados, setRelacionados] = useState<Producto[]>([]);
+  const [notificacion, setNotificacion] = useState<{
+    tipo: "success" | "error";
+    mensaje: string;
+  } | null>(null);
+
+  // Mostrar notificación temporal
+  const showNotificacion = (tipo: "success" | "error", mensaje: string) => {
+    setNotificacion({ tipo, mensaje });
+    setTimeout(() => setNotificacion(null), 2000);
+  };
 
   useEffect(() => {
     if (!id) return;
@@ -86,7 +96,8 @@ export default function VistaProducto() {
               imagen: getImgUrl(prod.imagen),
             }))
           );
-        });
+        })
+        .catch(() => setRelacionados([]));
     }
   }, [producto]);
 
@@ -102,9 +113,46 @@ export default function VistaProducto() {
     );
   }
 
+  // Acciones con notificación
+  const handleToggleFavorito = async () => {
+    if (isFavorito(producto.id)) {
+      await removeFavorito(producto.id);
+      showNotificacion("success", "Producto eliminado de favoritos");
+    } else {
+      await addFavorito(producto.id);
+      showNotificacion("success", "Producto agregado a favoritos");
+    }
+  };
+
+  const handleAddToCart = () => {
+    addToCart({
+      producto_id: producto.id,
+      nombre: producto.nombre,
+      imagen: producto.imagen,
+      talla,
+      color: producto.colores?.[0] || "",
+      precio: producto.precio,
+      cantidad,
+      stock: producto.stock,
+    });
+    showNotificacion("success", "Producto agregado al carrito");
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-white text-black">
       <Header />
+      {/* Notificación */}
+      {notificacion && (
+        <div
+          className={`fixed top-6 left-1/2 -translate-x-1/2 z-50 px-6 py-3 rounded shadow-lg font-semibold ${
+            notificacion.tipo === "success"
+              ? "bg-green-100 text-green-700"
+              : "bg-red-100 text-red-700"
+          }`}
+        >
+          {notificacion.mensaje}
+        </div>
+      )}
       <main className="flex-1 max-w-5xl mx-auto px-2 sm:px-4 py-4 md:py-8 w-full bg-white">
         {/* Breadcrumb */}
         <nav className="text-xs text-gray-500 mb-4 flex items-center gap-2">
@@ -150,16 +198,12 @@ export default function VistaProducto() {
               <button
                 className="p-2"
                 aria-label="Favorito"
-                onClick={() =>
-                  isFavorito(producto.id)
-                    ? removeFavorito(producto.id)
-                    : addFavorito(producto.id)
-                }
+                onClick={handleToggleFavorito}
               >
                 <img
                   src={
                     isFavorito(producto.id)
-                      ? "/img/iconos/favorito-fill.svg"
+                      ? "/img/iconos/favorito-lleno.svg"
                       : "/img/iconos/favorito.svg"
                   }
                   alt="Favorito"
@@ -170,9 +214,8 @@ export default function VistaProducto() {
             <div className="text-black">{producto.descripcion}</div>
             <div className="flex items-center gap-3 mt-2">
               <span className="text-lg md:text-xl font-semibold text-black">
-                {typeof producto.precio === "number"
-                  ? `$${producto.precio.toLocaleString("es-CO")}`
-                  : "Precio no disponible"}
+                {/* Solo muestra el precio, nunca "Precio no disponible" */}$
+                {producto.precio.toLocaleString("es-CO")}
               </span>
               {producto.descuento > 0 && (
                 <>
@@ -218,12 +261,7 @@ export default function VistaProducto() {
               />
               <button
                 className="px-4 py-2 rounded border flex items-center justify-center"
-                onClick={() =>
-                  isFavorito(producto.id)
-                    ? removeFavorito(producto.id)
-                    : addFavorito(producto.id)
-                }
-                aria-label="Favorito"
+                onClick={handleToggleFavorito}
               >
                 <img
                   src={
@@ -240,18 +278,7 @@ export default function VistaProducto() {
             <button
               className="bg-black text-white px-6 py-2 rounded font-semibold w-full"
               disabled={producto.stock === 0}
-              onClick={() =>
-                addToCart({
-                  producto_id: producto.id,
-                  nombre: producto.nombre,
-                  imagen: producto.imagen,
-                  talla,
-                  color: producto.colores[0],
-                  precio: producto.precio,
-                  cantidad,
-                  stock: producto.stock,
-                })
-              }
+              onClick={handleAddToCart}
             >
               {producto.stock === 0 ? "Sin stock" : "Añadir al carrito"}
             </button>
