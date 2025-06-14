@@ -57,6 +57,11 @@ export default function AnalyticsPage() {
       .then((res) => setUsuarios(res.data));
   }, [filtroUsuarios]);
 
+  // Calcula el máximo para cada dataset
+  const maxVentas = Math.max(10, ...ventas.map((v: any) => v.total));
+  const maxOrdenes = Math.max(10, ...ordenes.map((v: any) => v.total));
+  const maxUsuarios = Math.max(10, ...usuarios.map((v: any) => v.total));
+
   return (
     <div className="min-h-screen flex flex-col bg-[#F6F7FB] text-black">
       <main className="flex-1 max-w-5xl mx-auto px-2 py-8 w-full">
@@ -84,7 +89,7 @@ export default function AnalyticsPage() {
             <LineChart data={ventas}>
               <CartesianGrid strokeDasharray="3 3" vertical={false} />
               <XAxis dataKey="periodo" tick={{ fontSize: 12 }} />
-              <YAxis domain={[0, 1000]} tick={{ fontSize: 12 }} />
+              <YAxis domain={[0, maxVentas]} tick={{ fontSize: 12 }} />
               <Tooltip content={<CustomTooltip tipo="ventas" />} />
               <Line
                 type="monotone"
@@ -126,7 +131,7 @@ export default function AnalyticsPage() {
             <LineChart data={ordenes}>
               <CartesianGrid strokeDasharray="3 3" vertical={false} />
               <XAxis dataKey="periodo" tick={{ fontSize: 12 }} />
-              <YAxis domain={[0, 1000]} tick={{ fontSize: 12 }} />
+              <YAxis domain={[0, maxOrdenes]} tick={{ fontSize: 12 }} />
               <Tooltip content={<CustomTooltip tipo="ordenes" />} />
               <Line
                 type="monotone"
@@ -168,7 +173,7 @@ export default function AnalyticsPage() {
             <LineChart data={usuarios}>
               <CartesianGrid strokeDasharray="3 3" vertical={false} />
               <XAxis dataKey="periodo" tick={{ fontSize: 12 }} />
-              <YAxis domain={[0, 1000]} tick={{ fontSize: 12 }} />
+              <YAxis domain={[0, maxUsuarios]} tick={{ fontSize: 12 }} />
               <Tooltip content={<CustomTooltip tipo="usuarios" />} />
               <Line
                 type="monotone"

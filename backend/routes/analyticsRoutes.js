@@ -1,6 +1,28 @@
 const express = require("express");
 const router = express.Router();
 
+router.get("/ordenes", async (req, res) => {
+  const pool = req.app.locals.pool;
+  const { periodo = "dia" } = req.query;
+  let groupBy, dateFormat;
+  if (periodo === "semana") {
+    groupBy = "YEARWEEK(fecha)";
+    dateFormat = "CONCAT(YEAR(fecha), '-', WEEK(fecha))";
+  } else if (periodo === "mes") {
+    groupBy = "DATE_FORMAT(fecha, '%Y-%m')";
+    dateFormat = "DATE_FORMAT(fecha, '%Y-%m')";
+  } else {
+    groupBy = "DATE(fecha)";
+    dateFormat = "DATE(fecha)";
+  }
+  const [rows] = await pool.query(
+    `SELECT ${dateFormat} as periodo, COUNT(*) as total
+     FROM pedidos
+     GROUP BY periodo
+     ORDER BY periodo ASC`
+  );
+  res.json(rows);
+});
 router.get("/ventas", async (req, res) => {
   const pool = req.app.locals.pool;
   const { periodo = "dia" } = req.query;
@@ -20,28 +42,6 @@ router.get("/ventas", async (req, res) => {
      FROM pedidos
      WHERE estado = 'Completo'
      GROUP BY ${groupBy}
-     ORDER BY periodo ASC`
-  );
-  res.json(rows);
-});
-router.get("/ordenes", async (req, res) => {
-  const pool = req.app.locals.pool;
-  const { periodo = "dia" } = req.query;
-  let groupBy, dateFormat;
-  if (periodo === "semana") {
-    groupBy = "YEARWEEK(fecha)";
-    dateFormat = "CONCAT(YEAR(fecha), '-', WEEK(fecha))";
-  } else if (periodo === "mes") {
-    groupBy = "DATE_FORMAT(fecha, '%Y-%m')";
-    dateFormat = "DATE_FORMAT(fecha, '%Y-%m')";
-  } else {
-    groupBy = "DATE(fecha)";
-    dateFormat = "DATE(fecha)";
-  }
-  const [rows] = await pool.query(
-    `SELECT ${dateFormat} as periodo, COUNT(*) as total
-     FROM pedidos
-     GROUP BY periodo
      ORDER BY periodo ASC`
   );
   res.json(rows);

@@ -126,8 +126,8 @@ export default function AdminOverview() {
             </tr>
           </thead>
           <tbody>
-            {ordenesRecientes.map((o: any) => (
-              <tr key={o.id} className="border-b">
+            {ordenesRecientes.map((o, idx) => (
+              <tr key={`${o.id}-${idx}`} className="border-b">
                 <td className="py-2">{o.codigo || o.id}</td>
                 <td className="text-primary font-semibold">
                   {o.usuario_nombre}
@@ -169,16 +169,6 @@ function StatBox({ title, value, icon, color, negativo }: any) {
       </div>
       <div className="text-2xl font-bold text-gray-800">
         ${value?.toLocaleString("es-CO")}
-      </div>
-      <div className="flex items-center gap-2">
-        <span
-          className={`text-xs font-bold ${
-            negativo ? "text-red-500" : "text-green-500"
-          }`}
-        >
-          {negativo ? "-1.23%" : "+1.23%"}
-        </span>
-        <span className="text-xs text-gray-400">vs anterior</span>
       </div>
     </div>
   );

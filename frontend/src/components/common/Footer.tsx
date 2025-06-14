@@ -1,8 +1,146 @@
 import Link from "next/link";
 import { useState } from "react";
 
-const terminosTexto = `
-Última actualización: 09/06/2025
+export default function Footer() {
+  const [showTerms, setShowTerms] = useState(false);
+
+  return (
+    <footer className="bg-[#181818] text-white pt-8 pb-2 px-2 md:px-6 mt-16 text-sm">
+      <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 border-b border-white/10 pb-6 justify-items-center">
+        {/* Logo y contacto */}
+        <div className="flex flex-col gap-2 items-center md:items-start">
+          <img src="/img/Logo-2.png" alt="Tussy Store" className="h-14 mb-2" />
+          <span className="text-xs mt-2">+57 300 4627581</span>
+          <span className="text-xs">Tussysabes@gmail.com</span>
+          <div className="flex gap-2 mt-4">
+            <div className="bg-white rounded-lg p-2 flex items-center justify-center">
+              <img
+                src="/img/Bancolombia-Logo.png"
+                alt="Bancolombia"
+                className="h-9"
+              />
+            </div>
+            <div className="bg-white rounded-lg p-2 flex items-center justify-center">
+              <img
+                src="/img/Mercadopago.png"
+                alt="Mercadopago"
+                className="h-10"
+              />
+            </div>
+            <div className="bg-white rounded-lg p-2 flex items-center justify-center">
+              <img src="/img/Nequi-Logo.png" alt="Nequi" className="h-9" />
+            </div>
+          </div>
+        </div>
+        {/* Información */}
+        <div className="flex flex-col items-center md:items-start">
+          <div className="font-bold mb-2">Información</div>
+          <ul className="space-y-1">
+            <li>
+              <Link href="/perfil" className="hover:underline">
+                Mi Cuenta
+              </Link>
+            </li>
+            <li>
+              <Link href="/login" className="hover:underline">
+                Login
+              </Link>
+            </li>
+            <li>
+              <Link href="/cart" className="hover:underline">
+                Mi Carrito
+              </Link>
+            </li>
+            <li>
+              <Link href="/perfil/favoritos" className="hover:underline">
+                Mis Favoritos
+              </Link>
+            </li>
+          </ul>
+        </div>
+        {/* Servicios */}
+        <div className="flex flex-col items-center md:items-start">
+          <div className="font-bold mb-2">Servicios</div>
+          <ul className="space-y-1">
+            <li>
+              <Link href="/sobre-nosotros" className="hover:underline">
+                Sobre Nosotros
+              </Link>
+            </li>
+            <li>
+              <Link href="/entrega" className="hover:underline">
+                Información de Entrega
+              </Link>
+            </li>
+            <li>
+              <Link href="/privacidad" className="hover:underline">
+                Política de Privacidad
+              </Link>
+            </li>
+            <li>
+              <button
+                type="button"
+                className="hover:underline bg-transparent text-left w-full"
+                onClick={() => setShowTerms(true)}
+              >
+                Términos & Condiciones
+              </button>
+            </li>
+          </ul>
+        </div>
+      </div>
+      {/* Social icons and copyright */}
+      <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between mt-4 gap-2">
+        <div className="text-xs opacity-80 text-center md:text-left">
+          © {new Date().getFullYear()} Tussy Store. All rights reserved
+        </div>
+        <div className="flex gap-4 items-center text-lg">
+          <a
+            href="https://www.instagram.com/tussy.store/"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Instagram"
+          >
+            <img
+              src="/img/Instagram-Logo.png"
+              alt="Instagram"
+              className="h-5"
+            />
+          </a>
+          <a
+            href="https://wa.me/573004627581"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="WhatsApp"
+          >
+            <img src="/img/whatsapp-Logo.png" alt="WhatsApp" className="h-5" />
+          </a>
+          <a
+            href="https://tiktok.com/@tussystore"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="TikTok"
+          >
+            <img src="/img/Tiktok-Logo.png" alt="TikTok" className="h-5" />
+          </a>
+        </div>
+      </div>
+      {/* Modal de términos y condiciones */}
+      {showTerms && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white rounded-lg shadow-lg max-w-lg w-full p-6 relative">
+            <button
+              className="absolute top-2 right-4 text-2xl font-bold text-gray-500 hover:text-black"
+              onClick={() => setShowTerms(false)}
+              aria-label="Cerrar"
+            >
+              ×
+            </button>
+            <div className="text-xl text-black font-bold mb-2 underline text-center">
+              TÉRMINOS Y CONDICIONES DE USO
+            </div>
+            <div className="text-sm text-black max-h-[60vh] overflow-y-auto whitespace-pre-line mt-2">
+              {`Última actualización: 09/06/2025
 
 Bienvenido(a) a Tussy Store (“la Plataforma”), operada por Tussy Store (“nosotros”).
 Al usar esta Plataforma, usted acepta los siguientes términos y condiciones. Si no está de acuerdo con alguno, debe abstenerse de utilizar nuestros servicios.
@@ -34,123 +172,7 @@ Estos términos se rigen por las leyes de la República de Colombia.
 ________________________________________
 8. Contacto
 Si tiene preguntas, escríbanos a: soportetussystore@gmail.com.
-`;
-
-export default function Footer() {
-  const [showTerms, setShowTerms] = useState(false);
-
-  return (
-    <footer className="bg-[#181818] text-white py-10 px-4 md:px-6 mt-16">
-      <div className="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 md:gap-12">
-        {/* Logo y contacto */}
-        <div>
-          <img
-            src="/img/Logo-2.png"
-            alt="Tussy Store"
-            className="h-14 md:h-16 mb-4"
-          />
-          <p className="text-base mb-3">Tienda online de ropa y accesorios.</p>
-          <div className="flex gap-3 mt-3">
-            <a
-              href="https://www.instagram.com/tussy.store/"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <img
-                src="/img/Instagram-Logo.png"
-                alt="Instagram"
-                className="h-8"
-              />
-            </a>
-            <a
-              href="https://tiktok.com/@tussystore"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <img src="/img/Tiktok-Logo.png" alt="TikTok" className="h-10" />
-            </a>
-            <a
-              href="https://wa.me/573001234567"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <img
-                src="/img/whatsapp-Logo.png"
-                alt="WhatsApp"
-                className="h-8"
-              />
-            </a>
-          </div>
-        </div>
-        {/* Información */}
-        <div>
-          <h4 className="font-bold mb-3 text-lg">Información</h4>
-          <ul className="text-base space-y-2">
-            <li>
-              <Link href="/entrega" className="hover:underline">
-                Información de entrega
-              </Link>
-            </li>
-            <li>
-              <Link href="/privacidad" className="hover:underline">
-                Política de privacidad
-              </Link>
-            </li>
-            <li>
-              <button
-                type="button"
-                className="hover:underline bg-transparent text-left w-full"
-                onClick={() => setShowTerms(true)}
-              >
-                Términos y condiciones
-              </button>
-            </li>
-          </ul>
-        </div>
-        {/* Métodos de pago */}
-        <div>
-          <h4 className="font-bold mb-3 text-lg">Métodos de pago</h4>
-          <div className="flex gap-3 items-center flex-wrap">
-            <img
-              src="/img/Mercadopago.png"
-              alt="MercadoPago"
-              className="h-14"
-            />
-            <img
-              src="/img/Bancolombia-Logo.png"
-              alt="Bancolombia"
-              className="h-14"
-            />
-            <img src="/img/Nequi-Logo.png" alt="Nequi" className="h-14" />
-          </div>
-        </div>
-      </div>
-      <div className="text-center text-sm mt-10 opacity-80">
-        © {new Date().getFullYear()} Tussy Store. Todos los derechos reservados.
-      </div>
-      {/* Modal de términos y condiciones */}
-      {showTerms && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white rounded-lg shadow-lg max-w-lg w-full p-6 relative">
-            <button
-              className="absolute top-2 right-4 text-2xl font-bold text-gray-500 hover:text-black"
-              onClick={() => setShowTerms(false)}
-              aria-label="Cerrar"
-            >
-              ×
-            </button>
-            <a
-              href="#"
-              className="text-xl text-black font-bold mb-2 underline hover:text-primary cursor-pointer block text-center"
-              onClick={(e) => {
-                e.preventDefault();
-                setShowTerms(true);
-              }}
-            >
-              TÉRMINOS Y CONDICIONES DE USO
-            </a>
-            <div className="text-sm text-black max-h-[60vh] overflow-y-auto whitespace-pre-line mt-2">
-              {terminosTexto}
+`}
             </div>
           </div>
         </div>

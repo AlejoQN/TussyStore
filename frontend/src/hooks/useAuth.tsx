@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext, useState } from "react";
+import { useAuth } from "@/context/AuthContext";
 
 const AuthContext = createContext<any>(null);
 
@@ -23,4 +24,12 @@ export function useAuth() {
   const ctx = useContext(AuthContext);
   if (!ctx) throw new Error("useAuth debe usarse dentro de AuthProvider");
   return ctx;
+}
+
+export function useUserCart() {
+  const { user } = useAuth();
+  const cartKey = user ? `tussy_cart_${user.id}` : "tussy_cart";
+
+  // Usa cartKey en lugar de "tussy_cart" para guardar y leer el carrito
+  // ...resto del hook...
 }

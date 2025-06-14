@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { useAuth } from "@/context/AuthContext";
 import Link from "next/link";
-import { useRouter, useParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useUserCart } from "@/hooks/userCart";
 import { useFavoritos } from "@/hooks/useFavoritos";
 
@@ -18,40 +18,26 @@ type Favorito = {
   color?: string;
 };
 
-interface Producto {
-  id: number;
-  nombre: string;
-  descripcion: string;
-  precio: number;
-  descuento?: number;
-  imagen: string;
-  imagenes?: string[];
-  tallas?: string[];
-  colores?: string[];
-  stock: number;
-  categoria: number;
-}
-
 export default function PerfilFavoritos() {
   const { token, user } = useAuth();
   const [favoritos, setFavoritos] = useState<Favorito[]>([]);
   const [busqueda, setBusqueda] = useState("");
-  const { id } = useParams();
   const router = useRouter();
   const { addToCart } = useUserCart();
-  const { isFavorito, addFavorito, removeFavorito } = useFavoritos();
 
-  const [producto, setProducto] = useState<Producto | null>(null);
-  const [cantidad, setCantidad] = useState(1);
-  const [talla, setTalla] = useState<string>("");
-  const [tab, setTab] = useState<"descripcion" | "info">("descripcion");
-  const [imgPrincipal, setImgPrincipal] = useState<string>("");
-  const [relacionados, setRelacionados] = useState<Producto[]>([]);
   const [notificacion, setNotificacion] = useState<{
     tipo: "success" | "error";
     mensaje: string;
   } | null>(null);
-  const [vista, setVista] = useState<"favoritos" | "producto">("favoritos");
+
+  // Estado para hover por tarjeta
+  const [hovered, setHovered] = useState<number | null>(null);
+
+  // Estado para popup de confirmación
+  const [popup, setPopup] = useState<{ open: boolean; id: number | null }>({
+    open: false,
+    id: null,
+  });
 
   // Mostrar notificación temporal
   const showNotificacion = (tipo: "success" | "error", mensaje: string) => {
@@ -59,6 +45,7 @@ export default function PerfilFavoritos() {
     setTimeout(() => setNotificacion(null), 2000);
   };
 
+  // Obtener favoritos del usuario
   useEffect(() => {
     if (!token) return;
     axios
@@ -69,14 +56,18 @@ export default function PerfilFavoritos() {
       .catch(() => setFavoritos([]));
   }, [token]);
 
+  // Eliminar favorito (con confirmación)
   const handleEliminar = async (id: number) => {
     if (!token) return;
     await axios.delete(`/api/favoritos/${id}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     setFavoritos((prev) => prev.filter((f) => f.id !== id));
+    showNotificacion("success", "Producto eliminado de favoritos");
+    setPopup({ open: false, id: null });
   };
 
+  // Agregar al carrito
   const handleAgregarAlCarrito = async (producto: Favorito) => {
     if (!token) return;
     await axios.post(
@@ -89,100 +80,6 @@ export default function PerfilFavoritos() {
       },
       { headers: { Authorization: `Bearer ${token}` } }
     );
-    // Opcional: feedback visual
-  };
-
-  // ARREGLA EL ERROR DE RELACIONADOS: asegúrate de que la ruta exista en el backend (ver más abajo)
-  useEffect(() => {
-    if (producto) {
-      axios
-        .get(
-          `/api/productos/relacionados?categoria=${producto.categoria}&exclude=${producto.id}`
-        )
-        .then((res) => {
-          const getImgUrl = (img: string) =>
-            img
-              ? img.startsWith("http")
-                ? img
-                : `/uploads/${img.replace(/^\/?uploads\//, "")}`
-              : "/img/no-image.png";
-          setRelacionados(
-            res.data.items.map((prod: any) => ({
-              ...prod,
-              imagen: getImgUrl(prod.imagen),
-            }))
-          );
-        })
-        .catch(() => setRelacionados([]));
-    }
-  }, [producto]);
-
-  useEffect(() => {
-    if (!id) return;
-    axios.get(`/api/productos/${id}`).then((res) => {
-      const p = res.data;
-      const getImgUrl = (img: string) =>
-        img
-          ? img.startsWith("http")
-            ? img
-            : `/uploads/${img.replace(/^\/?uploads\//, "")}`
-          : "/img/no-image.png";
-      setProducto({
-        ...p,
-        imagen: getImgUrl(p.imagen),
-        imagenes: p.imagenes
-          ? p.imagenes.map((img: string) => getImgUrl(img))
-          : [getImgUrl(p.imagen)],
-        tallas:
-          typeof p.tallas === "string"
-            ? p.tallas.split(",").map((t: string) => t.trim())
-            : [],
-        colores:
-          typeof p.colores === "string"
-            ? p.colores.split(",").map((c: string) => c.trim())
-            : [],
-      });
-      setImgPrincipal(getImgUrl(p.imagen));
-      setTalla(
-        typeof p.tallas === "string" ? p.tallas.split(",")[0]?.trim() || "" : ""
-      );
-    });
-  }, [id]);
-
-  if (!producto) {
-    return (
-      <div>
-        <Header />
-        <main className="p-8 text-center text-red-500">
-          Producto no encontrado
-        </main>
-        <Footer />
-      </div>
-    );
-  }
-
-  // Cambia el corazón a rojo si es favorito
-  const handleToggleFavorito = async () => {
-    if (isFavorito(producto.id)) {
-      await removeFavorito(producto.id);
-      showNotificacion("success", "Producto eliminado de favoritos");
-    } else {
-      await addFavorito(producto.id);
-      showNotificacion("success", "Producto agregado a favoritos");
-    }
-  };
-
-  const handleAddToCart = () => {
-    addToCart({
-      producto_id: producto.id,
-      nombre: producto.nombre,
-      imagen: producto.imagen,
-      talla,
-      color: producto.colores?.[0] || "",
-      precio: producto.precio,
-      cantidad,
-      stock: producto.stock,
-    });
     showNotificacion("success", "Producto agregado al carrito");
   };
 
@@ -205,8 +102,31 @@ export default function PerfilFavoritos() {
           {notificacion.mensaje}
         </div>
       )}
+      {/* Pop-up de confirmación */}
+      {popup.open && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-8 shadow-lg text-center max-w-xs w-full">
+            <div className="text-lg font-bold mb-4">Eliminar producto</div>
+            <div className="mb-6 text-gray-700">
+              ¿Estás seguro de eliminar este producto de tus favoritos?
+            </div>
+            <button
+              className="w-full py-2 rounded bg-red-100 text-red-600 font-semibold hover:bg-red-200 mb-2"
+              onClick={() => handleEliminar(popup.id!)}
+            >
+              Eliminar
+            </button>
+            <button
+              className="w-full py-2 rounded bg-gray-100 text-gray-700 font-semibold hover:bg-gray-200"
+              onClick={() => setPopup({ open: false, id: null })}
+            >
+              Cancelar
+            </button>
+          </div>
+        </div>
+      )}
       <main className="flex-1 max-w-6xl mx-auto w-full px-2 sm:px-4 py-8">
-        <h1 className="text-3xl font-bold mb-8 mt-4">Mi perfil</h1>
+        <h1 className="text-3xl font-bold mb-8 mt-4">Mis Favoritos</h1>
         <div className="flex flex-col lg:flex-row gap-10">
           {/* Sidebar */}
           <aside className="w-full max-w-xs lg:w-72 bg-white border rounded-xl shadow p-0 mb-8 lg:mb-0 self-start">
@@ -328,7 +248,7 @@ export default function PerfilFavoritos() {
               Eliminar Cuenta
             </button>
           </aside>
-          {/* Lista de favoritos */}
+          {/* Lista de favoritos tipo tarjetas */}
           <div className="flex-1">
             <div className="flex justify-end mb-4">
               <input
@@ -339,75 +259,85 @@ export default function PerfilFavoritos() {
                 onChange={(e) => setBusqueda(e.target.value)}
               />
             </div>
-            <div className="bg-white rounded-xl shadow p-4">
-              {favoritosFiltrados.length === 0 ? (
-                <div className="text-center text-gray-500 py-12">
-                  No tienes productos en favoritos.
-                </div>
-              ) : (
-                <ul>
-                  {favoritosFiltrados.map((fav, idx) => (
-                    <li
-                      key={`${fav.id}-${idx}`}
-                      className="flex items-center gap-4 py-6 border-b last:border-b-0"
-                    >
-                      <img
-                        src={
-                          fav.imagen?.startsWith("http")
-                            ? fav.imagen
-                            : fav.imagen
-                            ? `/uploads/${fav.imagen.replace(
-                                /^\/?uploads\//,
-                                ""
-                              )}`
-                            : "/img/no-image.png"
-                        }
-                        alt={fav.nombre}
-                        className="h-20 w-20 object-contain rounded"
-                      />
-                      <div className="flex-1">
-                        <div className="font-bold">{fav.nombre}</div>
-                        <div className="text-xs text-gray-600 mb-1">
-                          {fav.talla && <>Talla: {fav.talla} </>}
-                          {fav.color && <>| Color: {fav.color}</>}
-                        </div>
-                        <div className="font-semibold text-lg">
+            {favoritosFiltrados.length === 0 ? (
+              <div className="text-center text-gray-500 py-12">
+                No tienes productos en favoritos.
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                {favoritosFiltrados.map((fav, idx) => (
+                  <div
+                    key={`${fav.id}-${idx}`}
+                    className="relative bg-white rounded-xl shadow flex flex-col items-center p-4 transition-all duration-200 hover:shadow-lg min-h-[320px]"
+                    onMouseEnter={() => setHovered(fav.id)}
+                    onMouseLeave={() => setHovered(null)}
+                  >
+                    {/* Botón eliminar en la esquina */}
+                    {hovered === fav.id && (
+                      <button
+                        className="absolute top-3 right-3 text-red-500 hover:bg-red-100 rounded-full p-1 z-10"
+                        onClick={() => setPopup({ open: true, id: fav.id })}
+                        title="Quitar de favoritos"
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-5 w-5"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M6 18L18 6M6 6l12 12"
+                          />
+                        </svg>
+                      </button>
+                    )}
+                    {/* Imagen */}
+                    <img
+                      src={
+                        fav.imagen?.startsWith("http")
+                          ? fav.imagen
+                          : fav.imagen
+                          ? `/uploads/${fav.imagen.replace(
+                              /^\/?uploads\//,
+                              ""
+                            )}`
+                          : "/img/no-image.png"
+                      }
+                      alt={fav.nombre}
+                      className="w-36 h-36 object-contain mb-4"
+                    />
+                    {/* Botón agregar al carrito */}
+                    {hovered === fav.id && (
+                      <button
+                        className="mb-3 bg-gray-100 hover:bg-black hover:text-white text-black px-4 py-2 rounded shadow font-medium transition"
+                        onClick={() => handleAgregarAlCarrito(fav)}
+                      >
+                        Agregar al Carrito
+                      </button>
+                    )}
+                    {/* Nombre y descripción */}
+                    <div className="w-full mt-auto">
+                      <div className="font-bold text-base mt-2">
+                        {fav.nombre}
+                      </div>
+                      <div className="text-sm text-gray-600">
+                        {fav.talla && <>Talla: {fav.talla} </>}
+                        {fav.color && <>| Color: {fav.color}</>}
+                      </div>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="font-semibold text-base">
                           ${fav.precio.toLocaleString("es-CO")}
-                        </div>
+                        </span>
                       </div>
-                      <div className="flex flex-col items-end gap-2 min-w-[120px]">
-                        <button
-                          className="border px-3 py-1 rounded font-semibold hover:bg-gray-100"
-                          onClick={() => handleAgregarAlCarrito(fav)}
-                        >
-                          Agregar al carrito
-                        </button>
-                        <button
-                          className="text-red-500 hover:bg-red-100 rounded px-3 py-1 font-semibold"
-                          onClick={() => handleEliminar(fav.id)}
-                        >
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="h-5 w-5 inline-block mr-1"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M6 18L18 6M6 6l12 12"
-                            />
-                          </svg>
-                          Quitar
-                        </button>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </main>

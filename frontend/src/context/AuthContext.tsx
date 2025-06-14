@@ -60,6 +60,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } else {
       localStorage.removeItem("tussy_token");
       localStorage.removeItem("tussy_user");
+      localStorage.removeItem("tussy_cart");
     }
   }, [token, user]);
 
@@ -71,6 +72,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setToken(token);
     localStorage.setItem("tussy_token", token);
     localStorage.setItem("tussy_user", JSON.stringify(user));
+    localStorage.removeItem("tussy_cart"); // Limpia el carrito local antes de cargar el del usuario autenticado
   };
 
   // Logout
@@ -79,6 +81,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(null);
     localStorage.removeItem("tussy_token");
     localStorage.removeItem("tussy_user");
+    localStorage.removeItem("tussy_cart"); // Limpia el carrito local
     router.push("/"); // Redirige a la homepage
   };
 
