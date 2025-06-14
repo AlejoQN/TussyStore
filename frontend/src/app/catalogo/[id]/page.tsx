@@ -1,23 +1,94 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Header from "@/components/common/Header";
 import Footer from "@/components/common/Footer";
-import { mockProductos } from "../page";
 import { useUserCart } from "@/hooks/userCart";
+import { useFavoritos } from "@/hooks/useFavoritos";
+import axios from "axios";
+
+interface Producto {
+  id: number;
+  nombre: string;
+  descripcion: string;
+  precio: number;
+  descuento: number;
+  imagen: string;
+  imagenes?: string[];
+  tallas: string[];
+  colores: string[];
+  stock: number;
+  categoria: string;
+}
 
 export default function VistaProducto() {
-  const params = useParams();
-  const id = Number(params.id);
-  const producto = mockProductos.find(
-    (p: (typeof mockProductos)[number]) => p.id === id
-  );
-  const [talla, setTalla] = useState(producto?.tallas[0] || "");
-  const [cantidad, setCantidad] = useState(1);
-  const [favorito, setFavorito] = useState(false);
-  const [tab, setTab] = useState<"descripcion" | "info">("descripcion");
+  const { id } = useParams();
   const router = useRouter();
   const { addToCart } = useUserCart();
+  const { isFavorito, addFavorito, removeFavorito } = useFavoritos();
+
+  const [producto, setProducto] = useState<Producto | null>(null);
+  const [cantidad, setCantidad] = useState(1);
+  const [talla, setTalla] = useState<string>("");
+  const [tab, setTab] = useState<"descripcion" | "info">("descripcion");
+  const [imgPrincipal, setImgPrincipal] = useState<string>("");
+  const [relacionados, setRelacionados] = useState<Producto[]>([]);
+
+  useEffect(() => {
+    if (!id) return;
+    axios.get(`/api/productos/${id}`).then((res) => {
+      const p = res.data;
+      // Forzar imágenes desde /uploads si no son absolutas
+      const getImgUrl = (img: string) =>
+        img
+          ? img.startsWith("http")
+            ? img
+            : `/uploads/${img.replace(/^\/?uploads\//, "")}`
+          : "/img/no-image.png";
+      setProducto({
+        ...p,
+        imagen: getImgUrl(p.imagen),
+        imagenes: p.imagenes
+          ? p.imagenes.map((img: string) => getImgUrl(img))
+          : [getImgUrl(p.imagen)],
+        tallas:
+          typeof p.tallas === "string"
+            ? p.tallas.split(",").map((t: string) => t.trim())
+            : [],
+        colores:
+          typeof p.colores === "string"
+            ? p.colores.split(",").map((c: string) => c.trim())
+            : [],
+      });
+      setImgPrincipal(getImgUrl(p.imagen));
+      setTalla(
+        typeof p.tallas === "string" ? p.tallas.split(",")[0]?.trim() || "" : ""
+      );
+    });
+  }, [id]);
+
+  useEffect(() => {
+    if (producto) {
+      axios
+        .get(
+          `/api/productos/relacionados?categoria=${producto.categoria}&exclude=${producto.id}`
+        )
+        .then((res) => {
+          const getImgUrl = (img: string) =>
+            img
+              ? img.startsWith("http")
+                ? img
+                : `/uploads/${img.replace(/^\/?uploads\//, "")}`
+              : "/img/no-image.png";
+          setRelacionados(
+            res.data.items.map((prod: any) => ({
+              ...prod,
+              imagen: getImgUrl(prod.imagen),
+            }))
+          );
+        });
+    }
+  }, [producto]);
 
   if (!producto) {
     return (
@@ -31,26 +102,10 @@ export default function VistaProducto() {
     );
   }
 
-  // Simulación de galería (si tuvieras más imágenes, agrégalas aquí)
-  const imagenes = [
-    producto.imagen,
-    producto.imagen,
-    producto.imagen,
-    producto.imagen,
-  ];
-
-  // Productos relacionados
-  const relacionados = mockProductos
-    .filter(
-      (p: (typeof mockProductos)[number]) =>
-        p.categoria === producto.categoria && p.id !== producto.id
-    )
-    .slice(0, 3);
-
   return (
     <div className="min-h-screen flex flex-col bg-white text-black">
       <Header />
-      <main className="flex-1 max-w-md md:max-w-6xl mx-auto px-2 sm:px-4 py-4 md:py-8 w-full">
+      <main className="flex-1 max-w-5xl mx-auto px-2 sm:px-4 py-4 md:py-8 w-full bg-white">
         {/* Breadcrumb */}
         <nav className="text-xs text-gray-500 mb-4 flex items-center gap-2">
           <span
@@ -60,41 +115,64 @@ export default function VistaProducto() {
             Catálogo
           </span>
           <span>/</span>
-          <span
-            className="cursor-pointer hover:underline"
-            onClick={() => router.push(`/catalogo?cat=${producto.categoria}`)}
-          >
-            {producto.categoria}
-          </span>
-          <span>/</span>
           <span className="font-semibold">{producto.nombre}</span>
         </nav>
         <div className="flex flex-col md:flex-row gap-8">
           {/* Galería de imágenes */}
           <div className="flex-1 flex flex-col items-center">
             <img
-              src={producto.imagen}
+              src={imgPrincipal || "/img/no-image.png"}
               alt={producto.nombre}
-              className="w-full max-w-xs h-72 object-contain rounded shadow mb-4"
+              className="w-full max-w-xs h-72 object-contain rounded shadow border border-gray-200 mb-4 bg-gray-50"
+              onError={(e) => (e.currentTarget.src = "/img/no-image.png")}
             />
             <div className="flex gap-2 w-full justify-center">
-              {imagenes.map((img, i) => (
+              {(producto.imagenes || [producto.imagen]).map((img, i) => (
                 <img
                   key={i}
-                  src={img}
+                  src={img || "/img/no-image.png"}
                   alt={`miniatura-${i}`}
-                  className="w-16 h-16 object-contain rounded border cursor-pointer"
+                  className={`w-16 h-16 object-contain rounded border cursor-pointer bg-gray-100 ${
+                    imgPrincipal === img ? "border-black" : "border-gray-200"
+                  }`}
+                  onClick={() => setImgPrincipal(img)}
+                  onError={(e) => (e.currentTarget.src = "/img/no-image.png")}
                 />
               ))}
             </div>
           </div>
           {/* Info producto */}
-          <div className="flex-1 flex flex-col gap-4">
-            <h1 className="text-lg md:text-2xl font-bold">{producto.nombre}</h1>
-            <div className="text-gray-700">{producto.descripcion}</div>
+          <div className="flex-1 flex flex-col gap-4 bg-gray-50 rounded-lg p-6 border border-gray-200 shadow text-black">
+            <div className="flex justify-between items-start">
+              <h1 className="text-lg md:text-2xl font-bold">
+                {producto.nombre}
+              </h1>
+              <button
+                className="p-2"
+                aria-label="Favorito"
+                onClick={() =>
+                  isFavorito(producto.id)
+                    ? removeFavorito(producto.id)
+                    : addFavorito(producto.id)
+                }
+              >
+                <img
+                  src={
+                    isFavorito(producto.id)
+                      ? "/img/iconos/favorito-fill.svg"
+                      : "/img/iconos/favorito.svg"
+                  }
+                  alt="Favorito"
+                  className="w-7 h-7"
+                />
+              </button>
+            </div>
+            <div className="text-black">{producto.descripcion}</div>
             <div className="flex items-center gap-3 mt-2">
               <span className="text-lg md:text-xl font-semibold text-black">
-                ${producto.precio.toLocaleString("es-CO")}
+                {typeof producto.precio === "number"
+                  ? `$${producto.precio.toLocaleString("es-CO")}`
+                  : "Precio no disponible"}
               </span>
               {producto.descuento > 0 && (
                 <>
@@ -140,16 +218,22 @@ export default function VistaProducto() {
               />
               <button
                 className="px-4 py-2 rounded border flex items-center justify-center"
-                onClick={() => setFavorito((f) => !f)}
+                onClick={() =>
+                  isFavorito(producto.id)
+                    ? removeFavorito(producto.id)
+                    : addFavorito(producto.id)
+                }
                 aria-label="Favorito"
               >
-                <span
-                  className={
-                    favorito ? "text-red-500 text-xl" : "text-gray-400 text-xl"
+                <img
+                  src={
+                    isFavorito(producto.id)
+                      ? "/img/iconos/favorito-lleno.svg"
+                      : "/img/iconos/favorito.svg"
                   }
-                >
-                  {favorito ? "❤️" : "🤍"}
-                </span>
+                  alt="Favorito"
+                  className="w-6 h-6"
+                />
               </button>
             </div>
             {/* Botón agregar al carrito */}
@@ -186,10 +270,7 @@ export default function VistaProducto() {
             >
               Descripción
             </summary>
-            <div className="mt-2 text-gray-700">
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam
-              commodo magna facilisis, feugiat enim eu, bibendum neque.
-            </div>
+            <div className="mt-2 text-gray-700">{producto.descripcion}</div>
           </details>
           <details open={tab === "info"} className="md:hidden">
             <summary
@@ -228,7 +309,7 @@ export default function VistaProducto() {
           </div>
           <div className="hidden md:block mt-4 text-gray-700 min-h-[60px]">
             {tab === "descripcion"
-              ? "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam commodo magna facilisis, feugiat enim eu, bibendum neque."
+              ? producto.descripcion
               : "Composición: 100% algodón. Cuidados: lavar a mano, no usar blanqueador. Hecho en Colombia."}
           </div>
         </div>
@@ -236,17 +317,18 @@ export default function VistaProducto() {
         <div className="mt-12">
           <h3 className="text-xl font-bold mb-4">Productos Relacionados</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-            {relacionados.map((prod: (typeof mockProductos)[number]) => (
+            {relacionados.map((prod, idx) => (
               <div
-                key={prod.id}
+                key={`${prod.id}-${idx}`}
                 className="cursor-pointer"
                 onClick={() => router.push(`/catalogo/${prod.id}`)}
               >
-                <div className="bg-gray-100 rounded flex flex-col items-center p-4">
+                <div className="bg-gray-50 rounded border border-gray-200 flex flex-col items-center p-4 shadow">
                   <img
-                    src={prod.imagen}
+                    src={prod.imagen || "/img/no-image.png"}
                     alt={prod.nombre}
                     className="w-28 h-28 object-contain mb-2"
+                    onError={(e) => (e.currentTarget.src = "/img/no-image.png")}
                   />
                   <div className="font-semibold">{prod.nombre}</div>
                   <div className="text-sm text-gray-600">

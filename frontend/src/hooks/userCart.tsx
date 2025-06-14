@@ -1,15 +1,16 @@
 "use client";
 import { useState, useEffect } from "react";
+import axios from "axios";
 
 export type CartItem = {
-  id: number;
+  id: number; // id único del item en el carrito
   producto_id: number;
   nombre: string;
   imagen: string;
-  talla?: string;
-  color?: string;
   precio: number;
   cantidad: number;
+  talla?: string;
+  color?: string;
   stock: number;
 };
 
@@ -25,62 +26,118 @@ function getStoredCart(): CartItem[] {
   }
 }
 
-export function useUserCart() {
-  const [items, setItems] = useState<CartItem[]>([]);
+export function useUserCart(userToken?: string) {
+  const [items, setItems] = useState<CartItem[]>(getStoredCart());
 
-  // Cargar carrito de localStorage al montar
+  // Persistencia en localStorage para invitados
   useEffect(() => {
-    setItems(getStoredCart());
-  }, []);
-
-  // Guardar carrito en localStorage cada vez que cambie
-  useEffect(() => {
-    if (typeof window !== "undefined") {
+    if (!userToken && typeof window !== "undefined") {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
     }
-  }, [items]);
+  }, [items, userToken]);
+
+  // Sincronizar con backend al iniciar sesión
+  useEffect(() => {
+    if (userToken) {
+      axios
+        .get("/api/cart", {
+          headers: { Authorization: `Bearer ${userToken}` },
+        })
+        .then((res) => {
+          if (Array.isArray(res.data.items)) setItems(res.data.items);
+        })
+        .catch(() => {});
+    }
+  }, [userToken]);
 
   // Añadir al carrito
-  const addToCart = (item: Omit<CartItem, "id">) => {
-    setItems((prev) => {
-      const idx = prev.findIndex(
-        (i) =>
-          i.producto_id === item.producto_id &&
-          i.talla === item.talla &&
-          i.color === item.color
-      );
-      if (idx !== -1) {
-        // Ya existe, sumar cantidad
-        const updated = [...prev];
-        updated[idx] = {
-          ...updated[idx],
-          cantidad: updated[idx].cantidad + item.cantidad,
-        };
-        return updated;
-      }
-      // Nuevo item
-      return [
-        ...prev,
+  const addToCart = async (item: Omit<CartItem, "id">) => {
+    if (userToken) {
+      await axios.post(
+        "/api/cart/add",
         {
-          ...item,
-          id: Date.now(),
+          producto_id: item.producto_id,
+          cantidad: item.cantidad,
+          talla: item.talla,
+          color: item.color,
         },
-      ];
-    });
+        {
+          headers: { Authorization: `Bearer ${userToken}` },
+        }
+      );
+      const res = await axios.get("/api/cart", {
+        headers: { Authorization: `Bearer ${userToken}` },
+      });
+      setItems(res.data.items);
+    } else {
+      setItems((prev) => {
+        const idx = prev.findIndex(
+          (i) =>
+            i.producto_id === item.producto_id &&
+            i.talla === item.talla &&
+            i.color === item.color
+        );
+        if (idx !== -1) {
+          const updated = [...prev];
+          updated[idx] = {
+            ...updated[idx],
+            cantidad: Math.min(
+              updated[idx].cantidad + item.cantidad,
+              updated[idx].stock
+            ),
+          };
+          return updated;
+        }
+        return [
+          ...prev,
+          {
+            ...item,
+            id: Date.now(),
+          },
+        ];
+      });
+    }
   };
 
-  // Eliminar del carrito
-  const removeFromCart = (id: number) => {
-    setItems((prev) => prev.filter((item) => item.id !== id));
+  // Eliminar del carrito por ID
+  const removeFromCart = async (id: number) => {
+    if (userToken) {
+      await axios.delete(`/api/cart/item/${id}`, {
+        headers: { Authorization: `Bearer ${userToken}` },
+      });
+      const res = await axios.get("/api/cart", {
+        headers: { Authorization: `Bearer ${userToken}` },
+      });
+      setItems(res.data.items);
+    } else {
+      setItems((prev) => prev.filter((item) => item.id !== id));
+    }
   };
 
-  // Actualizar cantidad
-  const updateQuantity = (id: number, cantidad: number) => {
-    setItems((prev) =>
-      prev.map((i) =>
-        i.id === id ? { ...i, cantidad: Math.max(1, cantidad) } : i
-      )
-    );
+  // Modificar cantidad de un producto
+  const updateQuantity = async (id: number, cantidad: number) => {
+    if (cantidad < 1) return;
+    const item = items.find((i) => i.id === id);
+    if (!item) return;
+    if (userToken) {
+      await axios.put(
+        `/api/cart/update/${id}`,
+        { cantidad },
+        { headers: { Authorization: `Bearer ${userToken}` } }
+      );
+      const res = await axios.get("/api/cart", {
+        headers: { Authorization: `Bearer ${userToken}` },
+      });
+      setItems(res.data.items);
+    } else {
+      setItems((prev) =>
+        prev.map((i) =>
+          i.id === id
+            ? { ...i, cantidad: Math.max(1, Math.min(cantidad, i.stock)) }
+            : i
+        )
+      );
+    }
   };
 
   return {
@@ -88,5 +145,6 @@ export function useUserCart() {
     addToCart,
     removeFromCart,
     updateQuantity,
+    setItems,
   };
 }

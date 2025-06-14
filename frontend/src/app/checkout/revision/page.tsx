@@ -5,7 +5,8 @@ import { useCheckout } from "../checkoutContext";
 import { useRouter } from "next/navigation";
 import { useUserCart } from "@/hooks/userCart";
 import axios from "axios";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
+import { useAuth } from "@/hooks/useAuth"; // o tu hook/contexto de auth
 
 // Utilidad simple para estimar días de entrega según ciudad/municipio
 function estimarDiasEntrega(destino: string) {
@@ -32,6 +33,9 @@ export default function RevisionPedido() {
   const { direccion, metodoPago, reset } = useCheckout();
   const router = useRouter();
   const { items } = useUserCart();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const { token } = useAuth(); // o como obtengas el token
 
   // Calcular subtotal, envio y total localmente
   const subtotal = useMemo(
@@ -66,13 +70,25 @@ export default function RevisionPedido() {
   }, [diasEntrega]);
 
   const handleConfirmar = async () => {
-    await axios.post("/api/ordenes", {
-      direccion,
-      metodoPago,
-      items,
-    });
-    reset();
-    router.push("/checkout/orden-confirmada");
+    setLoading(true);
+    setError("");
+    try {
+      await axios.post(
+        "/api/ordenes",
+        {
+          direccion,
+          metodoPago,
+          items,
+        },
+        token ? { headers: { Authorization: `Bearer ${token}` } } : undefined
+      );
+      // Redirige a la página de confirmación (pop-up o página)
+      router.push("/checkout/orden-confirmada");
+    } catch (err) {
+      setError("No se pudo procesar el pedido. Intenta de nuevo.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -215,24 +231,38 @@ export default function RevisionPedido() {
             )}
             <div className="flex justify-between mb-2">
               <span>Subtotal</span>
-              <span>${subtotal?.toLocaleString() ?? "0"}</span>
+              <span>
+                {typeof subtotal === "number"
+                  ? `$${subtotal.toLocaleString("es-CO")}`
+                  : "$0"}
+              </span>
             </div>
             <div className="flex justify-between mb-2">
               <span>Envío</span>
               <span>
-                {envio === 0 ? "Gratis" : `$${envio?.toLocaleString() ?? "0"}`}
+                {typeof envio === "number"
+                  ? envio === 0
+                    ? "Gratis"
+                    : `$${envio.toLocaleString("es-CO")}`
+                  : "$0"}
               </span>
             </div>
             <div className="flex justify-between font-bold text-base border-t pt-2">
               <span>Total</span>
-              <span>${total?.toLocaleString() ?? "0"}</span>
+              <span>
+                {typeof total === "number"
+                  ? `$${total.toLocaleString("es-CO")}`
+                  : "$0"}
+              </span>
             </div>
             <button
               onClick={handleConfirmar}
               className="mt-4 bg-dark text-white px-8 py-2 rounded font-semibold w-full text-base"
+              disabled={loading}
             >
-              Ordenar
+              {loading ? "Procesando..." : "Ordenar"}
             </button>
+            {error && <div className="text-red-500 mt-2">{error}</div>}
           </div>
         </div>
       </div>

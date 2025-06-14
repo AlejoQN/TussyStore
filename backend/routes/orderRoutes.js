@@ -1,36 +1,90 @@
 const express = require("express");
 const router = express.Router();
+const {
+  createOrder,
+  getUserOrders,
+  getAllOrders,
+} = require("../controllers/orderController");
+const { verifyToken } = require("../controllers/authController");
 const { pool } = require("../config/database");
-const { verifyToken } = require("../middlewares/authMiddleware"); // Asegúrate de tener este middleware
 
-// POST /api/ordenes
-router.post("/", async (req, res) => {
-  const { direccion, metodoPago, items } = req.body;
+// Crear orden
+router.post("/", verifyToken, createOrder);
+
+// Órdenes del usuario autenticado
+router.get("/", verifyToken, getUserOrders);
+
+// Todas las órdenes (admin)
+router.get("/all", verifyToken, getAllOrders);
+
+router.put("/estado/:id", verifyToken, async (req, res) => {
+  const orderId = req.params.id;
+  const { nuevo_estado } = req.body;
   try {
-    // Guarda la orden en la base de datos (ajusta según tu modelo real)
-    await pool.query(
-      "INSERT INTO pedidos (direccion, metodo_pago, estado, fecha) VALUES (?, ?, ?, NOW())",
-      [JSON.stringify(direccion), metodoPago, "pendiente"]
-    );
-    // Aquí puedes agregar lógica para guardar los items y procesar el pago
+    await pool.query("UPDATE pedidos SET estado = ? WHERE id = ?", [
+      nuevo_estado,
+      orderId,
+    ]);
     res.json({ ok: true });
   } catch (err) {
-    res.status(500).json({ error: "Error al crear la orden" });
+    res.status(500).json({ error: "Error actualizando estado del pedido" });
   }
 });
 
-// GET /api/ordenes
-router.get("/", verifyToken, async (req, res) => {
+router.put("/cancelar/:id", verifyToken, async (req, res) => {
+  const orderId = req.params.id;
   const usuario_id = req.user.id;
   try {
-    const [ordenes] = await pool.query(
-      "SELECT * FROM pedidos WHERE usuario = ? ORDER BY fecha DESC",
-      [usuario_id]
+    // Solo permite cancelar si la orden es del usuario y está en proceso
+    const [orden] = await pool.query(
+      "SELECT * FROM pedidos WHERE id = ? AND usuario = ? AND estado = 'En Proceso'",
+      [orderId, usuario_id]
     );
-    // Aquí deberías incluir los productos de cada pedido
-    res.json({ ordenes });
+    if (!orden.length) {
+      return res.status(400).json({ error: "No puedes cancelar esta orden" });
+    }
+    await pool.query("UPDATE pedidos SET estado = 'Cancelado' WHERE id = ?", [
+      orderId,
+    ]);
+    res.json({ ok: true });
   } catch (err) {
-    res.status(500).json({ error: "Error al obtener las órdenes" });
+    res.status(500).json({ error: "Error al cancelar la orden" });
+  }
+});
+
+// Obtener detalle de una orden por ID
+router.get("/:id", verifyToken, async (req, res) => {
+  const orderId = req.params.id;
+  const usuario_id = req.user.id;
+  try {
+    const [[orden]] = await pool.query(
+      "SELECT * FROM pedidos WHERE id = ? AND usuario = ?",
+      [orderId, usuario_id]
+    );
+    if (!orden) return res.status(404).json({ error: "Orden no encontrada" });
+
+    // Productos de la orden
+    const [productos] = await pool.query(
+      `SELECT 
+          op.cantidad,
+          op.precio_unitario as precio,
+          pr.nombre,
+          pr.imagen,
+          op.talla,
+          op.color
+       FROM ordenes_productos op
+       JOIN productos pr ON op.producto_id = pr.id
+       WHERE op.pedido_id = ?`,
+      [orderId]
+    );
+    orden.productos = productos;
+    // Si la dirección está en formato JSON
+    try {
+      orden.direccion = JSON.parse(orden.direccion);
+    } catch {}
+    res.json({ orden });
+  } catch (err) {
+    res.status(500).json({ error: "Error al obtener la orden" });
   }
 });
 

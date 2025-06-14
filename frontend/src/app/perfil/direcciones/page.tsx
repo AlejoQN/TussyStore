@@ -326,14 +326,6 @@ export default function PerfilDirecciones() {
                         )}
                       </div>
                       <div className="flex gap-2">
-                        {!dir.principal && (
-                          <button
-                            className="border px-3 py-1 rounded font-semibold hover:bg-gray-100 text-xs"
-                            onClick={() => handlePrincipal(dir.id)}
-                          >
-                            Hacer principal
-                          </button>
-                        )}
                         <button
                           className="border px-3 py-1 rounded font-semibold hover:bg-gray-100 text-xs"
                           onClick={() => handleEditar(dir)}

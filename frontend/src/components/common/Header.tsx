@@ -1,20 +1,36 @@
 "use client";
-import Link from "next/link";
-import { useState, useRef } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 const categorias = ["Hombre", "Mujer", "Niños", "Accesorios"];
 
 export default function Header() {
   const { user, logout } = useAuth();
+  const router = useRouter();
   const [showCategorias, setShowCategorias] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [suggestions, setSuggestions] = useState<any[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const router = useRouter();
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  // Cierra el menú si se hace click fuera
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setMenuOpen(false);
+      }
+    }
+    if (menuOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [menuOpen]);
 
   // Autocomplete en búsqueda
   const handleSearchChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -125,21 +141,6 @@ export default function Header() {
           >
             Catálogo
           </Link>
-          {/* Menú desplegable de categorías */}
-          {(showCategorias || menuOpen) && (
-            <div className="absolute left-0 top-full bg-white shadow rounded mt-2 min-w-[180px] hidden md:block">
-              {categorias.map((cat) => (
-                <Link
-                  key={cat}
-                  href={`/catalogo?categoria=${encodeURIComponent(cat)}`}
-                  className="block px-4 py-2 hover:bg-primary/10"
-                  onClick={() => setMenuOpen(false)}
-                >
-                  {cat}
-                </Link>
-              ))}
-            </div>
-          )}
           {/* Categorías en menú móvil */}
           {menuOpen && (
             <div className="block md:hidden mt-2">
@@ -157,7 +158,7 @@ export default function Header() {
           )}
         </div>
         <Link
-          href="/about"
+          href="/sobre-nosotros"
           className="hover:text-primary font-medium"
           onClick={() => setMenuOpen(false)}
         >
@@ -183,7 +184,11 @@ export default function Header() {
             title="Buscar"
             aria-label="Buscar"
           >
-            <img src="/img/iconos/busqueda.svg" alt="Buscar" className="h-5 w-5" />
+            <img
+              src="/img/iconos/busqueda.svg"
+              alt="Buscar"
+              className="h-5 w-5"
+            />
           </button>
           {/* Dropdown de sugerencias */}
           {showDropdown && suggestions.length > 0 && (
@@ -195,9 +200,15 @@ export default function Header() {
                   onClick={() => handleSuggestionClick(prod.id)}
                 >
                   <img
-                    src={prod.imagen || "/img/no-image.png"}
+                    src={
+                      prod.imagen?.startsWith("http")
+                        ? prod.imagen
+                        : prod.imagen
+                        ? `/uploads/${prod.imagen.replace(/^\/?uploads\//, "")}`
+                        : "/img/no-image.png"
+                    }
                     alt={prod.nombre}
-                    className="w-8 h-8 object-cover rounded"
+                    className="w-10 h-10 object-contain rounded"
                   />
                   <span className="truncate">{prod.nombre}</span>
                 </div>
@@ -215,31 +226,79 @@ export default function Header() {
           }}
           aria-label="Favoritos"
         >
-          <img src="/img/iconos/favorito.svg" alt="Favoritos" className="h-7 w-7" />
+          <img
+            src="/img/iconos/favorito.svg"
+            alt="Favoritos"
+            className="h-7 w-7"
+          />
         </button>
         {/* Carrito */}
-        <button
-          className="hover:text-primary"
-          title="Carrito"
-          onClick={handleCart}
-          aria-label="Carrito"
-        >
-          <img src="/img/iconos/carrito.svg" alt="Carrito" className="h-7 w-7" />
-        </button>
+        <Link href="/cart" className="relative">
+          <img
+            src="/img/iconos/carrito.svg"
+            alt="Carrito"
+            className="h-7 w-7 hover:text-primary"
+            title="Carrito"
+            onClick={handleCart}
+            aria-label="Carrito"
+          />
+        </Link>
         {user ? (
-          <div className="flex items-center gap-2">
-            <img
-              src={user.foto || "/img/perfil-demo.jpg"}
-              alt="Perfil"
-              className="h-8 w-8 rounded-full object-cover border"
-            />
-            <span className="font-semibold">{user.nombre}</span>
+          <div className="relative" ref={menuRef}>
             <button
-              onClick={logout}
-              className="ml-2 px-3 py-1 border rounded hover:bg-pink-400 transition text-black"
+              className="focus:outline-none"
+              onClick={() => setMenuOpen((v) => !v)}
+              aria-label="Abrir menú de usuario"
             >
-              Cerrar sesión
+              <img
+                src={
+                  user?.foto
+                    ? user.foto.startsWith("http")
+                      ? user.foto
+                      : `/uploads/${user.foto.replace(/^\/?uploads\//, "")}`
+                    : "/img/perfil-demo.jpg"
+                }
+                alt="Perfil"
+                className="h-8 w-8 rounded-full object-cover border"
+              />
             </button>
+            {menuOpen && (
+              <div className="absolute right-0 mt-2 w-48 bg-white border rounded shadow-lg z-50 py-2">
+                <div className="px-4 py-2 font-semibold text-black border-b">
+                  {user.nombre}
+                </div>
+                {/* SOLO PARA ADMIN */}
+                {user.rol === "admin" && (
+                  <button
+                    className="w-full text-left px-4 py-2 hover:bg-gray-100"
+                    onClick={() => {
+                      setMenuOpen(false);
+                      router.push("/admin/overview");
+                    }}
+                  >
+                    Dashboard
+                  </button>
+                )}
+                <button
+                  className="w-full text-left px-4 py-2 hover:bg-gray-100"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    router.push("/perfil");
+                  }}
+                >
+                  Mi perfil
+                </button>
+                <button
+                  className="w-full text-left px-4 py-2 hover:bg-gray-100 text-red-600"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    logout();
+                  }}
+                >
+                  Cerrar sesión
+                </button>
+              </div>
+            )}
           </div>
         ) : (
           <Link

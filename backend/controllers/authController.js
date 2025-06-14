@@ -7,7 +7,7 @@ const path = require("path");
 
 // 1. Registro de usuario
 exports.register = async (req, res) => {
-  const { nombre, email, password } = req.body;
+  const { nombre, email, password, edad, rol } = req.body;
   try {
     const [rows] = await pool.query("SELECT id FROM usuarios WHERE email = ?", [
       email,
@@ -17,11 +17,12 @@ exports.register = async (req, res) => {
     }
     const hashed = await bcrypt.hash(password, 10);
     await pool.query(
-      "INSERT INTO usuarios (nombre, email, password) VALUES (?, ?, ?)",
-      [nombre, email, hashed]
+      "INSERT INTO usuarios (nombre, email, password, edad, rol) VALUES (?, ?, ?, ?, ?)",
+      [nombre, email, hashed, edad, rol || "cliente"]
     );
     res.status(201).json({ message: "Usuario registrado correctamente" });
   } catch (err) {
+    console.error("Error en el registro:", err);
     res.status(500).json({ error: "Error en el registro" });
   }
 };
@@ -81,7 +82,7 @@ exports.forgotPassword = async (req, res) => {
     const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
 
     // Configurar nodemailer
-    const transporter = nodemailer.createTransport({
+    const transporter = require("nodemailer").createTransport({
       host: process.env.EMAIL_HOST,
       port: process.env.EMAIL_PORT,
       auth: {
@@ -90,18 +91,25 @@ exports.forgotPassword = async (req, res) => {
       },
     });
 
+    // LOG: Verifica datos de envío
+    console.log("Intentando enviar correo a:", email);
+
     await transporter.sendMail({
       from: process.env.EMAIL_FROM,
       to: email,
       subject: "Restablece tu contraseña - Tussy Store",
-      html: `<p>Hola ${user.nombre},</p>
+      html: `
+        <h2>Hola ${user.nombre},</h2>
         <p>Haz clic en el siguiente enlace para restablecer tu contraseña:</p>
         <a href="${resetLink}">${resetLink}</a>
-        <p>Este enlace expirará en 1 hora.</p>`,
+        <p>Este enlace expirará en 1 hora.</p>
+      `,
     });
 
+    console.log("Correo enviado correctamente a:", email);
     res.json({ message: "Correo de recuperación enviado" });
   } catch (err) {
+    console.error("Error enviando correo:", err);
     res.status(500).json({ error: "Error enviando el correo" });
   }
 };
@@ -124,11 +132,18 @@ exports.resetPassword = async (req, res) => {
 
 // 5. Middleware de verificación de token (para rutas protegidas)
 exports.verifyToken = (req, res, next) => {
-  const authHeader = req.headers.authorization;
-  if (!authHeader) return res.status(401).json({ error: "Token requerido" });
-  const token = authHeader.split(" ")[1];
+  const authHeader = req.headers["authorization"];
+  const token = authHeader && authHeader.split(" ")[1];
+  console.log("verifyToken: token recibido =", token); // <-- log para debug
+  if (!token) {
+    console.warn("verifyToken: No token enviado");
+    return res.status(401).json({ error: "Token requerido" });
+  }
   jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
-    if (err) return res.status(403).json({ error: "Token inválido" });
+    if (err) {
+      console.warn("verifyToken: Token inválido", err);
+      return res.status(403).json({ error: "Token inválido" });
+    }
     req.user = user;
     next();
   });
@@ -141,8 +156,9 @@ exports.getProfile = async (req, res) => {
       "SELECT id, nombre, email, telefono, direccion, foto FROM usuarios WHERE id = ?",
       [req.user.id]
     );
-    if (rows.length === 0)
+    if (rows.length === 0) {
       return res.status(404).json({ error: "Usuario no encontrado" });
+    }
     res.json(rows[0]);
   } catch (err) {
     res.status(500).json({ error: "Error obteniendo perfil" });
@@ -151,11 +167,11 @@ exports.getProfile = async (req, res) => {
 
 // 7. Actualizar perfil
 exports.updateProfile = async (req, res) => {
-  const { nombre, telefono, direccion } = req.body;
+  const { nombre, telefono, direccion, foto } = req.body;
   try {
     await pool.query(
-      "UPDATE usuarios SET nombre = ?, telefono = ?, direccion = ? WHERE id = ?",
-      [nombre, telefono, direccion, req.user.id]
+      "UPDATE usuarios SET nombre = ?, telefono = ?, direccion = ?, foto = ? WHERE id = ?",
+      [nombre, telefono, direccion, foto, req.user.id]
     );
     res.json({ message: "Perfil actualizado correctamente" });
   } catch (err) {
@@ -163,28 +179,31 @@ exports.updateProfile = async (req, res) => {
   }
 };
 
-// 8. Cambiar foto de perfil (usa multer para subir archivos)
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, path.join(__dirname, "../uploads"));
-  },
-  filename: function (req, file, cb) {
-    const ext = path.extname(file.originalname);
-    cb(null, `user_${req.user.id}_${Date.now()}${ext}`);
-  },
-});
-const upload = multer({ storage });
+// Cambiar contraseña desde el perfil
+exports.changePassword = async (req, res) => {
+  const { actual, nueva } = req.body;
+  try {
+    // Obtener usuario actual
+    const [rows] = await pool.query(
+      "SELECT password FROM usuarios WHERE id = ?",
+      [req.user.id]
+    );
+    if (rows.length === 0)
+      return res.status(404).json({ error: "Usuario no encontrado" });
 
-exports.cambiarFotoPerfil = [
-  upload.single("foto"),
-  async (req, res) => {
-    if (!req.file)
-      return res.status(400).json({ error: "No se subió ninguna imagen" });
-    const url = `/uploads/${req.file.filename}`;
-    await pool.query("UPDATE usuarios SET foto = ? WHERE id = ?", [
-      url,
+    // Validar contraseña actual
+    const valid = await bcrypt.compare(actual, rows[0].password);
+    if (!valid)
+      return res.status(400).json({ error: "Contraseña actual incorrecta" });
+
+    // Guardar nueva contraseña
+    const hashed = await bcrypt.hash(nueva, 10);
+    await pool.query("UPDATE usuarios SET password = ? WHERE id = ?", [
+      hashed,
       req.user.id,
     ]);
-    res.json({ foto: url });
-  },
-];
+    res.json({ message: "Contraseña actualizada correctamente" });
+  } catch (err) {
+    res.status(500).json({ error: "Error actualizando contraseña" });
+  }
+};

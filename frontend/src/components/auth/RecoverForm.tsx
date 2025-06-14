@@ -1,10 +1,13 @@
 "use client";
+import Link from "next/link";
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function RecoverForm() {
   const [email, setEmail] = useState("");
   const [success, setSuccess] = useState("");
   const [error, setError] = useState("");
+  const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -12,7 +15,7 @@ export default function RecoverForm() {
     setError("");
     // Aquí tu lógica de petición a la API
     try {
-      const res = await fetch("/api/auth/recover", {
+      const res = await fetch("/api/auth/recuperar", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
@@ -28,24 +31,33 @@ export default function RecoverForm() {
   return (
     <div className="relative min-h-screen flex items-center justify-center bg-white">
       {/* Logo esquina superior izquierda */}
-      <img
-        src="/logo.png"
-        alt="Logo"
+      <Link
+        href="/"
         className="absolute top-8 left-8 w-24"
         style={{ width: 90 }}
-      />
+      >
+        <img
+          src="/img/Logo-2.png"
+          alt="Logo"
+          className="w-24"
+          style={{ width: 90 }}
+        />
+      </Link>
       {/* Botón cerrar */}
       <button
         aria-label="Cerrar"
         className="absolute top-8 right-8 text-black text-4xl font-light hover:opacity-70 z-50"
-        onClick={() => window.location.href = "/login"}
+        onClick={() => router.push("/login")}
         type="button"
-        >
+      >
         ×
       </button>
       {/* Título tienda */}
       <div className="absolute left-0 right-0 top-8 flex justify-center">
-        <span className="text-black text-5xl font-thin" style={{ fontFamily: "TussyFont, sans-serif" }}>
+        <span
+          className="text-black text-5xl font-thin"
+          style={{ fontFamily: "TussyFont, sans-serif" }}
+        >
           Tussy Store
         </span>
       </div>
@@ -66,7 +78,7 @@ export default function RecoverForm() {
           placeholder="Email"
           type="email"
           value={email}
-          onChange={e => setEmail(e.target.value)}
+          onChange={(e) => setEmail(e.target.value)}
           required
         />
 

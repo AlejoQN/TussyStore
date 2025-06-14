@@ -1,420 +1,331 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import { useRouter } from "next/navigation";
 
-type Producto = {
+interface Producto {
   id: number;
   nombre: string;
-  descripcion: string;
-  precio: number;
-  tallas: string;
-  colores: string;
+  imagen: string;
+  referencia: string;
   stock: number;
-  categoria_id: number;
-  categoria_nombre?: string;
-  imagen?: string;
-};
+  fecha: string;
+  categoria: string | number;
+  genero?: string;
+}
 
-type Categoria = {
-  id: number;
-  nombre: string;
-};
-
-const PAGE_SIZE = 10;
-
-export default function AdminProductsPage() {
+export default function AdminProductos() {
   const [productos, setProductos] = useState<Producto[]>([]);
-  const [categorias, setCategorias] = useState<Categoria[]>([]);
-  const [filtros, setFiltros] = useState({
-    nombre: "",
-    categoria: "",
-    stock: "",
-  });
-  const [page, setPage] = useState(1);
-  const [total, setTotal] = useState(0);
-  const [showModal, setShowModal] = useState(false);
-  const [editProducto, setEditProducto] = useState<Producto | null>(null);
-  const [imagenes, setImagenes] = useState<File[]>([]);
-  const [preview, setPreview] = useState<string[]>([]);
+  const [categorias, setCategorias] = useState<
+    { id: number; nombre: string }[]
+  >([]);
+  const [busqueda, setBusqueda] = useState("");
+  const [filtroCategoria, setFiltroCategoria] = useState("");
+  const [filtroGenero, setFiltroGenero] = useState("");
+  const [filtroStock, setFiltroStock] = useState("");
+  const [showPopup, setShowPopup] = useState(false);
+  const [productoAEliminar, setProductoAEliminar] = useState<number | null>(
+    null
+  );
+  const router = useRouter();
 
-  // Fetch categorías
   useEffect(() => {
-    axios
-      .get(`${process.env.NEXT_PUBLIC_API_URL}/categorias`)
-      .then((res) => setCategorias(res.data))
-      .catch(() => {});
+    axios.get("/api/productos").then((res) => {
+      setProductos(res.data.items);
+    });
+    axios.get("/api/productos/categorias").then((res) => {
+      setCategorias(res.data.categorias);
+    });
   }, []);
 
-  // Fetch productos con filtros y paginación
-  useEffect(() => {
-    const params: any = {
-      page,
-      pageSize: PAGE_SIZE,
-      ...filtros,
-    };
-    axios
-      .get(`${process.env.NEXT_PUBLIC_API_URL}/productos`, { params })
-      .then((res) => {
-        setProductos(res.data.items);
-        setTotal(res.data.total);
-      })
-      .catch(() => {});
-  }, [filtros, page]);
+  // Opcional: define los géneros si los tienes en la BD, si no, puedes usar un array fijo
+  const generos = ["Hombre", "Mujer", "Unisex"];
 
-  // Imagen preview
-  useEffect(() => {
-    if (imagenes.length === 0) {
-      setPreview([]);
-      return;
+  // Filtrado
+  const productosFiltrados = productos.filter((p) => {
+    const matchBusqueda = p.nombre
+      .toLowerCase()
+      .includes(busqueda.toLowerCase());
+    const matchCategoria = filtroCategoria
+      ? String(p.categoria) === filtroCategoria
+      : true;
+    const matchGenero = filtroGenero ? p.genero === filtroGenero : true;
+    const matchStock =
+      filtroStock === "conStock"
+        ? p.stock > 0
+        : filtroStock === "sinStock"
+        ? p.stock <= 0
+        : true;
+    return matchBusqueda && matchCategoria && matchGenero && matchStock;
+  });
+
+  const handleEliminar = (id: number) => {
+    setProductoAEliminar(id);
+    setShowPopup(true);
+  };
+
+  const handleConfirmarEliminar = async () => {
+    if (productoAEliminar) {
+      await axios.delete(`/api/productos/${productoAEliminar}`);
+      setProductos((prev) => prev.filter((p) => p.id !== productoAEliminar));
+      setShowPopup(false);
+      setProductoAEliminar(null);
     }
-    const urls = imagenes.map((file) => URL.createObjectURL(file));
-    setPreview(urls);
-    return () => urls.forEach((url) => URL.revokeObjectURL(url));
-  }, [imagenes]);
-
-  // Filtros
-  const handleFiltro = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => {
-    setFiltros({ ...filtros, [e.target.name]: e.target.value });
-    setPage(1);
   };
 
-  // Abrir modal para editar
-  const openEdit = (producto: Producto) => {
-    setEditProducto(producto);
-    setShowModal(true);
-    setImagenes([]);
-  };
-
-  // Guardar producto editado
-  const handleSave = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!editProducto) return;
-    // Subir imágenes si hay
-    let imagenUrl = editProducto.imagen;
-    if (imagenes.length > 0) {
-      const formData = new FormData();
-      imagenes.forEach((img) => formData.append("imagenes", img));
-      const res = await axios.post(
-        `${process.env.NEXT_PUBLIC_API_URL}/productos/upload`,
-        formData,
-        { headers: { "Content-Type": "multipart/form-data" } }
-      );
-      imagenUrl = res.data.urls[0]; // Solo la primera para preview
-    }
-    await axios.put(
-      `${process.env.NEXT_PUBLIC_API_URL}/productos/${editProducto.id}`,
-      {
-        ...editProducto,
-        imagen: imagenUrl,
-      }
-    );
-    setShowModal(false);
-    setEditProducto(null);
-    setImagenes([]);
-    // Refrescar productos
-    const params: any = { page, pageSize: PAGE_SIZE, ...filtros };
-    const res = await axios.get(
-      `${process.env.NEXT_PUBLIC_API_URL}/productos`,
-      { params }
-    );
-    setProductos(res.data.items);
-    setTotal(res.data.total);
-  };
-
-  // Exportar a CSV
-  const exportCSV = () => {
-    const header = [
-      "ID",
-      "Nombre",
-      "Descripción",
-      "Precio",
-      "Tallas",
-      "Colores",
-      "Stock",
-      "Categoría",
-    ];
-    const rows = productos.map((p) => [
-      p.id,
-      p.nombre,
-      p.descripcion,
-      p.precio,
-      p.tallas,
-      p.colores,
-      p.stock,
-      categorias.find((c) => c.id === p.categoria_id)?.nombre || "",
-    ]);
-    const csv = [header, ...rows]
-      .map((row) =>
-        row.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(",")
-      )
-      .join("\n");
-    const blob = new Blob([csv], { type: "text/csv" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "productos.csv";
-    a.click();
-    URL.revokeObjectURL(url);
-  };
-
-  // Tabla paginada
   return (
-    <div className="max-w-6xl mx-auto py-8 px-4">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold">Gestión de Productos</h2>
-        <button
-          className="bg-accent text-white px-4 py-2 rounded"
-          onClick={exportCSV}
-        >
-          Exportar a CSV
-        </button>
-      </div>
-      {/* Filtros */}
-      <div className="flex gap-4 mb-4 flex-wrap">
-        <input
-          type="text"
-          name="nombre"
-          placeholder="Buscar por nombre"
-          value={filtros.nombre}
-          onChange={handleFiltro}
-          className="border rounded px-2 py-1"
-        />
-        <select
-          name="categoria"
-          value={filtros.categoria}
-          onChange={handleFiltro}
-          className="border rounded px-2 py-1"
-        >
-          <option value="">Todas las categorías</option>
-          {categorias.map((cat) => (
-            <option key={cat.id} value={cat.id}>
-              {cat.nombre}
-            </option>
-          ))}
-        </select>
-        <select
-          name="stock"
-          value={filtros.stock}
-          onChange={handleFiltro}
-          className="border rounded px-2 py-1"
-        >
-          <option value="">Stock</option>
-          <option value="0">Sin stock</option>
-          <option value="1">Con stock</option>
-        </select>
-      </div>
-      {/* Tabla */}
-      <div className="overflow-x-auto">
-        <table className="min-w-full bg-white dark:bg-dark rounded shadow">
-          <thead>
-            <tr>
-              <th className="p-2">ID</th>
-              <th className="p-2">Imagen</th>
-              <th className="p-2">Nombre</th>
-              <th className="p-2">Descripción</th>
-              <th className="p-2">Precio</th>
-              <th className="p-2">Tallas</th>
-              <th className="p-2">Colores</th>
-              <th className="p-2">Stock</th>
-              <th className="p-2">Categoría</th>
-              <th className="p-2">Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {productos.map((p) => (
-              <tr key={p.id} className="border-t">
-                <td className="p-2">{p.id}</td>
-                <td className="p-2">
-                  {p.imagen && (
-                    <img
-                      src={p.imagen}
-                      alt={p.nombre}
-                      className="w-12 h-12 object-cover rounded"
-                    />
-                  )}
-                </td>
-                <td className="p-2">{p.nombre}</td>
-                <td className="p-2">{p.descripcion}</td>
-                <td className="p-2">${p.precio.toLocaleString()}</td>
-                <td className="p-2">{p.tallas}</td>
-                <td className="p-2">{p.colores}</td>
-                <td className="p-2">{p.stock}</td>
-                <td className="p-2">
-                  {categorias.find((c) => c.id === p.categoria_id)?.nombre ||
-                    ""}
-                </td>
-                <td className="p-2">
-                  <button
-                    className="bg-primary text-white px-2 py-1 rounded"
-                    onClick={() => openEdit(p)}
-                  >
-                    Editar
-                  </button>
-                </td>
-              </tr>
-            ))}
-            {productos.length === 0 && (
-              <tr>
-                <td colSpan={10} className="text-center py-6 text-gray-500">
-                  No hay productos.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
-      {/* Paginación */}
-      <div className="flex gap-2 mt-4 justify-end">
-        <button
-          className="px-3 py-1 rounded border"
-          disabled={page === 1}
-          onClick={() => setPage((p) => Math.max(1, p - 1))}
-        >
-          Anterior
-        </button>
-        <span>
-          Página {page} de {Math.ceil(total / PAGE_SIZE) || 1}
-        </span>
-        <button
-          className="px-3 py-1 rounded border"
-          disabled={page * PAGE_SIZE >= total}
-          onClick={() => setPage((p) => p + 1)}
-        >
-          Siguiente
-        </button>
-      </div>
-      {/* Modal editar */}
-      {showModal && editProducto && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-dark rounded-lg p-6 w-full max-w-lg relative">
-            <button
-              className="absolute top-2 right-2 text-2xl"
-              onClick={() => setShowModal(false)}
+    <div className="min-h-screen flex flex-col bg-white text-black">
+      <main className="flex-1 max-w-6xl mx-auto px-4 py-8 w-full">
+        <div className="flex justify-between items-center mb-6">
+          <div className="flex gap-2">
+            {/* Filtro Categoría */}
+            <select
+              className="border rounded px-2 py-1 text-sm"
+              value={filtroCategoria}
+              onChange={(e) => setFiltroCategoria(e.target.value)}
             >
-              ×
+              <option value="">Categoría</option>
+              {categorias.map((cat) => (
+                <option key={cat.id} value={cat.id}>
+                  {cat.nombre}
+                </option>
+              ))}
+            </select>
+            {/* Filtro Género */}
+            <select
+              className="border rounded px-2 py-1 text-sm"
+              value={filtroGenero}
+              onChange={(e) => setFiltroGenero(e.target.value)}
+            >
+              <option value="">Género</option>
+              {generos.map((g) => (
+                <option key={g} value={g}>
+                  {g}
+                </option>
+              ))}
+            </select>
+            {/* Filtro Stock */}
+            <select
+              className="border rounded px-2 py-1 text-sm"
+              value={filtroStock}
+              onChange={(e) => setFiltroStock(e.target.value)}
+            >
+              <option value="">Filtro de Stock</option>
+              <option value="conStock">Con stock</option>
+              <option value="sinStock">Sin stock</option>
+            </select>
+            <button
+              className="border rounded px-4 py-1 text-sm"
+              onClick={() => {
+                setFiltroCategoria("");
+                setFiltroGenero("");
+                setFiltroStock("");
+                setBusqueda("");
+              }}
+            >
+              Limpiar
             </button>
-            <h3 className="text-xl font-bold mb-4">Editar producto</h3>
-            <form onSubmit={handleSave} className="space-y-3">
-              <input
-                type="text"
-                className="border rounded px-2 py-1 w-full"
-                placeholder="Nombre"
-                value={editProducto.nombre}
-                onChange={(e) =>
-                  setEditProducto({ ...editProducto, nombre: e.target.value })
-                }
-                required
-              />
-              <textarea
-                className="border rounded px-2 py-1 w-full"
-                placeholder="Descripción"
-                value={editProducto.descripcion}
-                onChange={(e) =>
-                  setEditProducto({
-                    ...editProducto,
-                    descripcion: e.target.value,
-                  })
-                }
-                required
-              />
-              <input
-                type="number"
-                className="border rounded px-2 py-1 w-full"
-                placeholder="Precio"
-                value={editProducto.precio}
-                onChange={(e) =>
-                  setEditProducto({
-                    ...editProducto,
-                    precio: Number(e.target.value),
-                  })
-                }
-                required
-              />
-              <input
-                type="text"
-                className="border rounded px-2 py-1 w-full"
-                placeholder="Tallas (ej: S,M,L)"
-                value={editProducto.tallas}
-                onChange={(e) =>
-                  setEditProducto({ ...editProducto, tallas: e.target.value })
-                }
-              />
-              <input
-                type="text"
-                className="border rounded px-2 py-1 w-full"
-                placeholder="Colores (ej: Rojo,Azul)"
-                value={editProducto.colores}
-                onChange={(e) =>
-                  setEditProducto({ ...editProducto, colores: e.target.value })
-                }
-              />
-              <input
-                type="number"
-                className="border rounded px-2 py-1 w-full"
-                placeholder="Stock"
-                value={editProducto.stock}
-                onChange={(e) =>
-                  setEditProducto({
-                    ...editProducto,
-                    stock: Number(e.target.value),
-                  })
-                }
-                required
-              />
-              <select
-                className="border rounded px-2 py-1 w-full"
-                value={editProducto.categoria_id}
-                onChange={(e) =>
-                  setEditProducto({
-                    ...editProducto,
-                    categoria_id: Number(e.target.value),
-                  })
-                }
-                required
-              >
-                <option value="">Selecciona categoría</option>
-                {categorias.map((cat) => (
-                  <option key={cat.id} value={cat.id}>
-                    {cat.nombre}
-                  </option>
-                ))}
-              </select>
-              {/* Upload imágenes */}
-              <div>
-                <label className="block mb-1">Imágenes</label>
-                <input
-                  type="file"
-                  multiple
-                  accept="image/*"
-                  onChange={(e) =>
-                    setImagenes(
-                      e.target.files ? Array.from(e.target.files) : []
-                    )
-                  }
-                />
-                <div className="flex gap-2 mt-2">
-                  {preview.map((url, i) => (
+          </div>
+          <button
+            className="border rounded px-4 py-2 text-sm font-semibold"
+            onClick={() => router.push("/admin/products/new")}
+          >
+            + Añadir Producto
+          </button>
+        </div>
+        <div className="bg-white rounded-xl shadow border p-4">
+          <div className="mb-4 flex items-center">
+            <input
+              type="text"
+              placeholder="Buscar"
+              value={busqueda}
+              onChange={(e) => setBusqueda(e.target.value)}
+              className="border rounded px-3 py-1 w-64"
+            />
+          </div>
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="text-gray-500 border-b">
+                <th className="py-2"></th>
+                <th>Nombre</th>
+                <th></th>
+                <th>Referencia</th>
+                <th>Stock</th>
+                <th>Fecha</th>
+                <th className="text-center">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              {productosFiltrados.map((p) => (
+                <tr key={p.id} className="border-b">
+                  <td>
+                    <input type="checkbox" />
+                  </td>
+                  <td>
+                    <div className="font-semibold">{p.nombre}</div>
+                  </td>
+                  <td>
                     <img
-                      key={i}
-                      src={url}
-                      alt={`preview-${i}`}
-                      className="w-16 h-16 object-cover rounded"
+                      src={
+                        p.imagen?.startsWith("http")
+                          ? p.imagen
+                          : p.imagen
+                          ? `/uploads/${p.imagen.replace(/^\/?uploads\//, "")}`
+                          : "/img/no-image.png"
+                      }
+                      alt={p.nombre}
+                      className="w-10 h-10 object-contain rounded-full mx-auto"
                     />
-                  ))}
+                  </td>
+                  <td>#{p.referencia || p.id}</td>
+                  <td>
+                    {p.stock > 0 ? (
+                      <span className="text-green-600 font-semibold">
+                        En Stock
+                      </span>
+                    ) : (
+                      <span className="text-red-500 font-semibold">
+                        Fuera de Stock
+                      </span>
+                    )}
+                  </td>
+                  <td>{p.fecha?.slice(0, 10)}</td>
+                  <td className="py-2">
+                    <div className="flex gap-2 items-center justify-center">
+                      {/* Ver */}
+                      <button
+                        className="p-2 hover:bg-gray-100 rounded"
+                        title="Ver"
+                        onClick={() => router.push(`/admin/products/${p.id}`)}
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-5 w-5 text-gray-700"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                          />
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                          />
+                        </svg>
+                      </button>
+                      {/* Editar */}
+                      <button
+                        className="p-2 hover:bg-gray-100 rounded"
+                        title="Editar"
+                        onClick={() =>
+                          router.push(`/admin/products/${p.id}/edit`)
+                        }
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-5 w-5 text-blue-600"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M15.232 5.232l3.536 3.536M9 13l6.586-6.586a2 2 0 112.828 2.828L11.828 15.828a4 4 0 01-2.828 1.172H7v-2a4 4 0 011.172-2.828z"
+                          />
+                        </svg>
+                      </button>
+                      {/* Eliminar */}
+                      <button
+                        className="p-2 hover:bg-gray-100 rounded"
+                        title="Eliminar"
+                        onClick={() => handleEliminar(p.id)}
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-5 w-5 text-red-600"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M6 18L18 6M6 6l12 12"
+                          />
+                        </svg>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+              {productosFiltrados.length === 0 && (
+                <tr>
+                  <td colSpan={7} className="text-center py-8 text-gray-500">
+                    No hay productos para mostrar.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+        {/* Pop-up de confirmación de borrado */}
+        {showPopup && (
+          <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
+            <div className="bg-white rounded-xl shadow-lg p-8 max-w-xs w-full text-center relative">
+              <button
+                className="absolute top-3 right-3 text-gray-400 hover:text-black text-xl"
+                onClick={() => setShowPopup(false)}
+              >
+                ×
+              </button>
+              <div className="mb-4">
+                <div className="bg-gray-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-2">
+                  <svg
+                    className="h-10 w-10 text-gray-700"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5-4h4a2 2 0 012 2v2H7V5a2 2 0 012-2h4z"
+                    />
+                  </svg>
+                </div>
+                <div className="font-bold text-lg mb-2">Borrar Producto</div>
+                <div className="text-gray-600 text-sm mb-4">
+                  ¿Quieres borrar este producto? Esta acción será irreversible
+                </div>
+                <div className="flex justify-center gap-4">
+                  <button
+                    className="border px-4 py-2 rounded"
+                    onClick={() => setShowPopup(false)}
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    className="bg-red-600 text-white px-4 py-2 rounded"
+                    onClick={handleConfirmarEliminar}
+                  >
+                    Borrar
+                  </button>
                 </div>
               </div>
-              <button
-                type="submit"
-                className="bg-primary text-white px-4 py-2 rounded font-semibold mt-2"
-              >
-                Guardar cambios
-              </button>
-            </form>
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </main>
     </div>
   );
 }

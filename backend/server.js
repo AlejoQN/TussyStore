@@ -7,8 +7,12 @@ const rateLimit = require("express-rate-limit");
 const mysql = require("mysql2/promise");
 const session = require("express-session");
 const passport = require("passport");
+const path = require("path");
+const nodemailer = require("nodemailer");
 
 const app = express();
+
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // Seguridad y utilidades
 app.use(helmet());
@@ -19,11 +23,11 @@ app.use(express.json());
 // Rate limiting
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutos
-  max: 100, // Límite de 100 peticiones por IP
+  max: 1000, // Sube el límite para desarrollo
   standardHeaders: true,
   legacyHeaders: false,
 });
-app.use(limiter);
+// app.use(limiter); // <-- Si está descomentado, limita las peticiones
 
 // Conexión a MySQL
 const dbConfig = {
@@ -31,19 +35,11 @@ const dbConfig = {
   user: process.env.DB_USER,
   password: process.env.DB_PASS,
   database: process.env.DB_NAME,
-  port: process.env.DB_PORT || 3307,
+  port: process.env.DB_PORT || 3306,
 };
-let db;
-mysql
-  .createConnection(dbConfig)
-  .then((connection) => {
-    db = connection;
-    console.log("Conexión a MySQL exitosa");
-  })
-  .catch((err) => {
-    console.error("Error conectando a MySQL:", err.message);
-    process.exit(1);
-  });
+const pool = mysql.createPool(dbConfig);
+app.locals.pool = pool;
+console.log("Conexión a MySQL exitosa");
 
 // Sesiones y autenticación
 app.use(
@@ -56,22 +52,38 @@ app.use(
 app.use(passport.initialize());
 app.use(passport.session());
 
-// Ruta Productos
+// Rutas
 const productRoutes = require("./routes/productRoutes");
 app.use("/api/productos", productRoutes);
 
-// Ruta Órdenes
 const orderRoutes = require("./routes/orderRoutes");
 app.use("/api/ordenes", orderRoutes);
+
+const cartRoutes = require("./routes/cartRoutes");
+app.use("/api/cart", cartRoutes);
+
+const authRoutes = require("./routes/authRoutes");
+app.use("/api/auth", authRoutes);
+
+const favoritosRoutes = require("./routes/favoritosRoutes");
+app.use("/api/favoritos", favoritosRoutes);
+
+const addressRoutes = require("./routes/addressRoutes");
+app.use("/api/direcciones", addressRoutes);
+
+const userRoutes = require("./routes/userRoutes");
+app.use("/api/usuario", userRoutes);
+
+const adminRoutes = require("./routes/adminRoutes");
+app.use("/api/admin", adminRoutes);
+
+const analyticsRoutes = require("./routes/analyticsRoutes");
+app.use("/api/analytics", analyticsRoutes);
 
 // Ruta de salud
 app.get("/api/health", (req, res) => {
   res.json({ status: "ok", message: "Tussy Store API running" });
 });
-
-// Ruta de Autenticación
-const authRoutes = require("./routes/authRoutes");
-app.use("/api/auth", authRoutes);
 
 // Manejo de rutas no encontradas
 app.use((req, res, next) => {
@@ -82,6 +94,16 @@ app.use((req, res, next) => {
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({ error: "Error interno del servidor" });
+});
+
+// Configuración de Nodemailer
+const transporter = nodemailer.createTransport({
+  host: process.env.EMAIL_HOST,
+  port: process.env.EMAIL_PORT,
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
+  },
 });
 
 // Puerto

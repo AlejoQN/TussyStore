@@ -10,12 +10,14 @@ const initialState = {
   password: "",
   confirmPassword: "",
   acceptTerms: false,
+  rol: "cliente",
 };
 
 export default function RegisterForm() {
   const [form, setForm] = useState(initialState);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [showTerms, setShowTerms] = useState(false);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -49,6 +51,7 @@ export default function RegisterForm() {
           email: form.email,
           password: form.password,
           edad: form.edad,
+          rol: form.rol,
         }),
       });
       const data = await res.json();
@@ -63,7 +66,11 @@ export default function RegisterForm() {
   return (
     <div className="relative min-h-screen flex items-center justify-center bg-white">
       {/* Logo esquina superior izquierda */}
-      <Link href="/" className="absolute top-8 left-8 w-24" style={{ width: 90 }}>
+      <Link
+        href="/"
+        className="absolute top-8 left-8 w-24"
+        style={{ width: 90 }}
+      >
         <img
           src="/img/Logo-2.png"
           alt="Logo"
@@ -162,6 +169,16 @@ export default function RegisterForm() {
           onChange={handleChange}
           required
         />
+        {/* Rol */}
+        <select
+          name="rol"
+          value={form.rol}
+          onChange={handleChange}
+          className="w-full border border-black rounded-xl p-3 text-lg mb-4 bg-white text-gray-400"
+        >
+          <option value="cliente">Cliente</option>
+          <option value="admin">Admin</option>
+        </select>
         {/* Checkbox */}
         <div className="w-full flex items-center mb-2">
           <input
@@ -175,7 +192,14 @@ export default function RegisterForm() {
           />
           <label htmlFor="terms" className="text-sm select-none text-black">
             He leído y acepto los{" "}
-            <a href="#" className="underline">
+            <a
+              href="#"
+              className="underline"
+              onClick={(e) => {
+                e.preventDefault();
+                setShowTerms(true);
+              }}
+            >
               Términos y Políticas de Privacidad
             </a>
           </label>
@@ -208,41 +232,72 @@ export default function RegisterForm() {
             Iniciar Sesión
           </Link>
         </div>
-        {/* Separador */}
-        <div className="flex items-center w-full my-2">
-          <hr className="flex-1 border-gray-300" />
-          <span className="px-2 text-sm text-gray-400">O Regístrate con</span>
-          <hr className="flex-1 border-gray-300" />
-        </div>
-        {/* Botón Google */}
-        <a
-          href={`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/google`}
-          className="w-1/2 flex items-center justify-center border border-gray-300 rounded-xl h-12 mt-3 mb-0 bg-white shadow-sm hover:shadow-md transition text-black font-semibold"
-        >
-          <svg className="w-7 h-7 mr-2" viewBox="0 0 48 48">
-            <g>
-              <path
-                fill="#4285F4"
-                d="M24 9.5c3.54 0 6.7 1.22 9.2 3.22l6.86-6.86C36.44 2.16 30.6 0 24 0 14.82 0 6.72 5.06 2.69 12.44l7.98 6.2C12.14 13.06 17.61 9.5 24 9.5z"
-              />
-              <path
-                fill="#34A853"
-                d="M46.1 24.55c0-1.64-.15-3.22-.43-4.74H24v9.01h12.42c-.54 2.9-2.16 5.36-4.62 7.03l7.1 5.52C43.98 37.12 46.1 31.36 46.1 24.55z"
-              />
-              <path
-                fill="#FBBC05"
-                d="M10.67 28.65c-1.1-3.22-1.1-6.7 0-9.92l-7.98-6.2C.86 16.94 0 20.36 0 24c0 3.64.86 7.06 2.69 10.47l7.98-6.2z"
-              />
-              <path
-                fill="#EA4335"
-                d="M24 48c6.6 0 12.14-2.18 16.19-5.94l-7.1-5.52c-2.01 1.36-4.6 2.16-7.09 2.16-6.39 0-11.86-3.56-14.33-8.74l-7.98 6.2C6.72 42.94 14.82 48 24 48z"
-              />
-              <path fill="none" d="M0 0h48v48H0z" />
-            </g>
-          </svg>
-          Google
-        </a>
       </form>
+      {showTerms && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white rounded-lg shadow-lg max-w-lg w-full p-6 relative">
+            <button
+              className="absolute top-2 right-4 text-2xl font-bold text-gray-500 hover:text-black"
+              onClick={() => setShowTerms(false)}
+              aria-label="Cerrar"
+            >
+              ×
+            </button>
+            <h2 className="text-xl text-black font-bold mb-2">
+              TÉRMINOS Y CONDICIONES DE USO
+            </h2>
+            <div className="text-sm text-black max-h-[60vh] overflow-y-auto whitespace-pre-line">
+              Última actualización: 09/06/2025
+              {"\n"}Bienvenido(a) a Tussy Store (“la Plataforma”), operada por
+              Tussy Store (“nosotros”).{"\n"}Al usar esta Plataforma, usted
+              acepta los siguientes términos y condiciones. Si no está de
+              acuerdo con alguno, debe abstenerse de utilizar nuestros
+              servicios.
+              {"\n"}________________________________________
+              {"\n"}1. Objeto
+              {"\n"}La Plataforma proporciona una experiencia de compra de
+              prendas a través de una plataforma web
+              {"\n"}________________________________________
+              {"\n"}2. Registro de Usuario
+              {"\n"}El acceso a ciertas funciones requiere la creación de una
+              cuenta personal. Usted es responsable de mantener la
+              confidencialidad de sus credenciales.
+              {"\n"}________________________________________
+              {"\n"}3. Propiedad Intelectual
+              {"\n"}Todo el contenido, software, interfaces y funcionalidades
+              son propiedad de Tussy Store y están protegidos por derechos de
+              autor, marcas registradas y otras leyes.
+              {"\n"}No se permite copiar, modificar, distribuir o hacer
+              ingeniería inversa del software sin autorización expresa.
+              {"\n"}________________________________________
+              {"\n"}4. Uso Permitido
+              {"\n"}Usted se compromete a:
+              {"\n"}• Usar la Plataforma de forma lícita.
+              {"\n"}• No interferir con la seguridad o funcionalidad del
+              servicio.
+              {"\n"}• No introducir malware o contenido dañino.
+              {"\n"}________________________________________
+              {"\n"}5. Responsabilidad
+              {"\n"}La Plataforma se ofrece “tal cual”. No garantizamos que el
+              servicio esté libre de errores o interrupciones. En ningún caso
+              seremos responsables por daños derivados del uso del servicio.
+              {"\n"}________________________________________
+              {"\n"}6. Modificaciones
+              {"\n"}Nos reservamos el derecho de modificar estos términos en
+              cualquier momento. Las modificaciones se notificarán en el sitio y
+              entrarán en vigor desde su publicación.
+              {"\n"}________________________________________
+              {"\n"}7. Legislación aplicable
+              {"\n"}Estos términos se rigen por las leyes de la República de
+              Colombia.
+              {"\n"}________________________________________
+              {"\n"}8. Contacto
+              {"\n"}Si tiene preguntas, escríbanos a:
+              soportetussystore@gmail.com.
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

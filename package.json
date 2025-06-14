@@ -12,10 +12,13 @@
     "rimraf": "^5.0.5"
   },
   "dependencies": {
+    "apexcharts": "^4.7.0",
     "express-session": "^1.18.1",
     "passport": "^0.7.0",
     "passport-google-oauth20": "^2.0.0",
     "react": "^19.1.0",
-    "react-dom": "^19.1.0"
+    "react-apexcharts": "^1.7.0",
+    "react-dom": "^19.1.0",
+    "recharts": "^2.15.3"
   }
 }

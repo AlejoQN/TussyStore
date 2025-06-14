@@ -5,8 +5,12 @@ const nextConfig: NextConfig = {
     return [
       {
         source: "/api/:path*",
-        destination: "http://localhost:5000/api/:path*", // Cambia el puerto si tu backend usa otro
+        destination: "http://localhost:5000/api/:path*", 
       },
+      {
+      source: "/uploads/:path*",
+      destination: "http://localhost:5000/uploads/:path*",
+    },
     ];
   },
 };

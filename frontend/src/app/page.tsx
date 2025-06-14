@@ -2,192 +2,107 @@
 import { useRouter } from "next/navigation";
 import Header from "@/components/common/Header";
 import Footer from "@/components/common/Footer";
+import { useEffect, useState } from "react";
+import axios from "axios";
+import { useUserCart } from "@/hooks/userCart";
+import { useFavoritos } from "@/hooks/useFavoritos";
 import ProductCard from "@/components/products/productCard";
-
-export const mockProductos = [
-  {
-    id: 1,
-    nombre: "Gorra Gucci",
-    descripcion: "Gorra con diseño exclusivo y materiales premium.",
-    precio: 90000,
-    descuento: 0,
-    imagen: "/img/Gucci.png",
-    tallas: ["Única"],
-    colores: ["Negro"],
-    stock: 10,
-    categoria: "Accesorios",
-  },
-  {
-    id: 2,
-    nombre: "Camiseta Supreme",
-    descripcion: "Camiseta edición limitada Supreme.",
-    precio: 250000,
-    descuento: 0,
-    imagen: "/img/camiseta-supreme.png",
-    tallas: ["S", "M", "L"],
-    colores: ["Blanco", "Negro"],
-    stock: 8,
-    categoria: "Camisetas",
-  },
-  {
-    id: 3,
-    nombre: "Tenis Luis guiton",
-    descripcion: "Tenis de lujo para un estilo único.",
-    precio: 340000,
-    descuento: 0,
-    imagen: "/img/zapatos.png",
-    tallas: ["38", "39", "40", "41", "42"],
-    colores: ["Blanco", "Negro"],
-    stock: 5,
-    categoria: "Calzado",
-  },
-  {
-    id: 4,
-    nombre: "Gorra Guffy",
-    descripcion: "Gorra divertida con diseño de Guffy.",
-    precio: 90000,
-    descuento: 0,
-    imagen: "/img/Goofy.png",
-    tallas: ["Única"],
-    colores: ["Azul"],
-    stock: 7,
-    categoria: "Accesorios",
-  },
-  {
-    id: 5,
-    nombre: "Camiseta ;)",
-    descripcion: "Camiseta con diseño popular.",
-    precio: 95000,
-    descuento: 0,
-    imagen: "/img/Camiseta-Roblox.png",
-    tallas: ["S", "M", "L"],
-    colores: ["Blanco", "Negro"],
-    stock: 12,
-    categoria: "Camisetas",
-  },
-  {
-    id: 6,
-    nombre: "Tacones en estratosfera",
-    descripcion: "Tacones de moda para ocasiones especiales.",
-    precio: 240000,
-    descuento: 0,
-    imagen: "/img/Tacones.png",
-    tallas: ["36", "37", "38", "39"],
-    colores: ["Rojo", "Negro"],
-    stock: 4,
-    categoria: "Calzado",
-  },
-  {
-    id: 7,
-    nombre: "Pantalones de Mariamoda",
-    descripcion: "Pantalones de última tendencia.",
-    precio: 64000,
-    descuento: 0,
-    imagen: "/img/Marimonda.png",
-    tallas: ["S", "M", "L"],
-    colores: ["Azul", "Negro"],
-    stock: 9,
-    categoria: "Pantalones",
-  },
-  {
-    id: 8,
-    nombre: "Pantalones 3 Piernas",
-    descripcion: "¡Atrévete a ser diferente!",
-    precio: 180000,
-    descuento: 0,
-    imagen: "/img/Tres-piernas.png",
-    tallas: ["M", "L"],
-    colores: ["Negro"],
-    stock: 2,
-    categoria: "Pantalones",
-  },
-  {
-    id: 9,
-    nombre: "Tenis Estratosféricos",
-    descripcion: "Tenis con diseño innovador para destacar.",
-    precio: 340000,
-    descuento: 0,
-    imagen: "/img/Teni.png",
-    tallas: ["38", "39", "40", "41", "42"],
-    colores: ["Blanco", "Negro"],
-    stock: 6,
-    categoria: "Calzado",
-  },
-];
-const masVendidos = [
-  {
-    id: 1,
-    nombre: "Gorra Gucci",
-    imagen: "/img/Gucci.png",
-    precio: 90000,
-    descripcion: "Gorra con diseño exclusivo y materiales premium.",
-    masVendido: true,
-  },
-  {
-    id: 2,
-    nombre: "Camiseta Supreme",
-    imagen: "/img/camiseta-supreme.png",
-    precio: 250000,
-    descripcion: "Camiseta edición limitada Supreme.",
-    masVendido: true,
-  },
-  {
-    id: 3,
-    nombre: "Tenis Luis guiton",
-    imagen: "/img/zapatos.png",
-    precio: 340000,
-    descripcion: "Tenis de lujo para un estilo único.",
-    masVendido: true,
-  },
-];
-
-const interesantes = [
-  {
-    id: 4,
-    nombre: "Gorra Guffy",
-    imagen: "/img/Goofy.png",
-    precio: 90000,
-    descripcion: "Gorra divertida con diseño de Guffy.",
-  },
-  {
-    id: 5,
-    nombre: "Camiseta ;)",
-    imagen: "/img/Camiseta-Roblox.png",
-    precio: 95000,
-    descripcion: "Camiseta con diseño popular.",
-  },
-  {
-    id: 6,
-    nombre: "Tacones en estratosfera",
-    imagen: "/img/Tacones.png",
-    precio: 240000,
-    descripcion: "Tacones de moda para ocasiones especiales.",
-  },
-  {
-    id: 7,
-    nombre: "Pantalones de Mariamoda",
-    imagen: "/img/Marimonda.png",
-    precio: 64000,
-    descripcion: "Pantalones de última tendencia.",
-  },
-  {
-    id: 8,
-    nombre: "Pantalones 3 Piernas",
-    imagen: "/img/Tres-piernas.png",
-    precio: 180000,
-    descripcion: "¡Atrévete a ser diferente!",
-  },
-  {
-    id: 9,
-    nombre: "Tenis Estratosféricos",
-    imagen: "/img/Teni.png",
-    precio: 340000,
-    descripcion: "Tenis con diseño innovador para destacar.",
-  },
-];
 
 export default function Home() {
   const router = useRouter();
+  const { addToCart } = useUserCart();
+  const { favoritos, addFavorito, removeFavorito, isFavorito } = useFavoritos();
+  const [destacados, setDestacados] = useState<any[]>([]);
+  const [masVendidos, setMasVendidos] = useState<any[]>([]);
+  const [interesantes, setInteresantes] = useState<any[]>([]);
+
+  useEffect(() => {
+    axios.get("/api/productos?destacados=true").then((res) => {
+      setDestacados(
+        res.data.items.map((p: any) => ({
+          ...p,
+          imagen: p.imagen
+            ? p.imagen.startsWith("http")
+              ? p.imagen
+              : `/uploads/${p.imagen.replace(/^\/?uploads\//, "")}`
+            : "/img/no-image.png",
+          precio: Number(p.precio),
+          tallas:
+            typeof p.tallas === "string"
+              ? p.tallas.split(",").map((t: string) => t.trim())
+              : [],
+          colores:
+            typeof p.colores === "string"
+              ? p.colores.split(",").map((c: string) => c.trim())
+              : [],
+        }))
+      );
+    });
+    axios.get("/api/productos?masVendidos=true").then((res) => {
+      setMasVendidos(
+        res.data.items.map((p: any) => ({
+          ...p,
+          imagen: p.imagen
+            ? p.imagen.startsWith("http")
+              ? p.imagen
+              : `/uploads/${p.imagen.replace(/^\/?uploads\//, "")}`
+            : "/img/no-image.png",
+          precio: Number(p.precio),
+          tallas:
+            typeof p.tallas === "string"
+              ? p.tallas.split(",").map((t: string) => t.trim())
+              : [],
+          colores:
+            typeof p.colores === "string"
+              ? p.colores.split(",").map((c: string) => c.trim())
+              : [],
+        }))
+      );
+    });
+    axios.get("/api/productos?interesantes=true").then((res) => {
+      setInteresantes(
+        res.data.items.map((p: any) => ({
+          ...p,
+          imagen: p.imagen
+            ? p.imagen.startsWith("http")
+              ? p.imagen
+              : `/uploads/${p.imagen.replace(/^\/?uploads\//, "")}`
+            : "/img/no-image.png",
+          precio: Number(p.precio),
+          tallas:
+            typeof p.tallas === "string"
+              ? p.tallas.split(",").map((t: string) => t.trim())
+              : [],
+          colores:
+            typeof p.colores === "string"
+              ? p.colores.split(",").map((c: string) => c.trim())
+              : [],
+        }))
+      );
+    });
+  }, []);
+
+  const productosAdaptados = [
+    ...masVendidos,
+    ...interesantes,
+    ...destacados,
+  ].map((p: any) => ({
+    ...p,
+    imagen: p.imagen
+      ? p.imagen.startsWith("http")
+        ? p.imagen
+        : `/uploads/${p.imagen.replace(/^\/?uploads\//, "")}`
+      : "/img/no-image.png",
+    precio: Number(p.precio),
+    tallas:
+      typeof p.tallas === "string"
+        ? p.tallas.split(",").map((t: string) => t.trim())
+        : [],
+    colores:
+      typeof p.colores === "string"
+        ? p.colores.split(",").map((c: string) => c.trim())
+        : [],
+  }));
 
   return (
     <div className="min-h-screen flex flex-col bg-white text-black">
@@ -207,13 +122,34 @@ export default function Home() {
             Lo más vendido
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-            {masVendidos.map((prod) => (
+            {productosAdaptados.map((prod, idx) => (
               <div
-                key={prod.id}
+                key={`${prod.id}-${idx}`}
                 className="cursor-pointer"
                 onClick={() => router.push(`/catalogo/${prod.id}`)}
               >
-                <ProductCard {...prod} />
+                <ProductCard
+                  {...prod}
+                  favorito={isFavorito(prod.id)}
+                  onToggleFavorite={(e: React.MouseEvent) => {
+                    e?.stopPropagation?.();
+                    isFavorito(prod.id)
+                      ? removeFavorito(prod.id)
+                      : addFavorito(prod.id);
+                  }}
+                  onAddToCart={() =>
+                    addToCart({
+                      producto_id: prod.id,
+                      nombre: prod.nombre,
+                      imagen: prod.imagen,
+                      talla: prod.tallas?.[0] || "",
+                      color: prod.colores?.[0] || "",
+                      precio: prod.precio,
+                      cantidad: 1,
+                      stock: prod.stock,
+                    })
+                  }
+                />
               </div>
             ))}
           </div>
@@ -230,7 +166,21 @@ export default function Home() {
                 className="cursor-pointer"
                 onClick={() => router.push(`/catalogo/${prod.id}`)}
               >
-                <ProductCard {...prod} />
+                <ProductCard
+                  {...prod}
+                  onAddToCart={() =>
+                    addToCart({
+                      producto_id: prod.id,
+                      nombre: prod.nombre,
+                      imagen: prod.imagen,
+                      talla: prod.tallas?.[0] || "",
+                      color: prod.colores?.[0] || "",
+                      precio: prod.precio,
+                      cantidad: 1,
+                      stock: prod.stock,
+                    })
+                  }
+                />
               </div>
             ))}
           </div>

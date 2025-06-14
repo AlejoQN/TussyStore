@@ -1,32 +1,46 @@
 "use client";
-import { useState, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import axios from "axios";
+import { useAuth } from "@/context/AuthContext";
 
 export default function PerfilDatosPersonales() {
-  // Simulación de datos del usuario (reemplazar por datos reales del backend)
+  const { token } = useAuth();
   const [form, setForm] = useState({
-    nombres: "Marco",
-    apellidos: "Polo",
-    telefono: "300 35689524",
-    correo: "Marcopolo123@gmail.com",
-    direccion: "Cl. 85D Sur #54C-43, Medellín, Antioquia",
-    foto: "/img/perfil-demo.jpg", // Cambia por la ruta real o avatar por defecto
+    nombre: "",
+    email: "",
+    telefono: "",
+    direccion: "",
+    foto: "",
   });
   const [editando, setEditando] = useState(false);
   const [mensaje, setMensaje] = useState("");
+  const [file, setFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Cambiar foto de perfil
-  const handleFotoClick = () => {
-    fileInputRef.current?.click();
-  };
-  const handleFotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const url = URL.createObjectURL(file);
-      setForm((prev) => ({ ...prev, foto: url }));
-      // Aquí deberías subir la imagen al backend y guardar la URL real
+  // Cargar datos reales del usuario al montar
+  useEffect(() => {
+    async function fetchUser() {
+      try {
+        const { data } = await axios.get("/api/usuario/perfil", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setForm({
+          nombre: data.nombre || "",
+          email: data.email || "",
+          telefono: data.telefono || "",
+          direccion: data.direccion || "",
+          foto: data.foto
+            ? data.foto.startsWith("http")
+              ? data.foto
+              : `/uploads/${data.foto.replace(/^\/?uploads\//, "")}`
+            : "/img/perfil-demo.jpg",
+        });
+      } catch {
+        setMensaje("Error cargando datos del usuario");
+      }
     }
-  };
+    if (token) fetchUser();
+  }, [token]);
 
   // Cambios en los campos
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -34,13 +48,57 @@ export default function PerfilDatosPersonales() {
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
+  // Cambiar foto de perfil
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const formData = new FormData();
+    formData.append("foto", file);
+    try {
+      const { data } = await axios.post("/api/usuario/subir-foto", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      setForm((prev) => ({
+        ...prev,
+        foto: `/uploads/${data.url.replace(/^\/?uploads\//, "")}`,
+      }));
+      setMensaje("Foto actualizada correctamente");
+      setTimeout(() => setMensaje(""), 2000);
+    } catch {
+      setMensaje("Error al subir la foto");
+    }
+  };
+
   // Guardar cambios
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Aquí deberías llamar a la API para guardar los cambios
-    setMensaje("¡Datos guardados correctamente!");
-    setTimeout(() => setMensaje(""), 2000);
-    setEditando(false);
+    let foto = form.foto;
+    try {
+      // Si hay nueva imagen, súbela primero
+      if (file) {
+        const data = new FormData();
+        data.append("foto", file);
+        const res = await axios.post("/api/usuario/upload-foto", data, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        foto = res.data.url;
+      }
+      await axios.put("/api/usuario/perfil", form, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setMensaje("¡Datos guardados correctamente!");
+      setEditando(false);
+    } catch {
+      setMensaje("Error al guardar los datos");
+    } finally {
+      setTimeout(() => setMensaje(""), 2000);
+    }
   };
 
   return (
@@ -51,18 +109,15 @@ export default function PerfilDatosPersonales() {
         <aside className="w-full max-w-xs lg:w-80 bg-white border rounded-xl shadow p-6 mb-8 lg:mb-0 self-start">
           <div className="flex flex-col items-center gap-2 mb-6">
             <img
-              src={form.foto}
+              src={form.foto || "/img/perfil-demo.jpg"}
               alt="Foto de perfil"
               className="w-16 h-16 rounded-full object-cover border"
             />
             <div className="font-semibold text-sm text-gray-700 mt-2">
-              Hola{" "}
-              <span className="text-lg" role="img" aria-label="wave">
-                👋
-              </span>
+              Hola <span className="text-lg">👋</span>
             </div>
             <div className="font-bold text-lg">
-              {form.nombres} {form.apellidos}
+              {form.nombre} {form.apellidos}
             </div>
           </div>
           <div className="flex flex-col gap-1">
@@ -95,28 +150,38 @@ export default function PerfilDatosPersonales() {
           <div className="flex flex-col items-center mb-8">
             <div className="relative group">
               <img
-                src={form.foto}
+                src={form.foto || "/img/perfil-demo.jpg"}
                 alt="Foto de perfil"
                 className="w-28 h-28 rounded-full object-cover border shadow"
               />
-              <button
-                type="button"
-                className="absolute bottom-2 right-2 bg-gray-200 rounded-full p-2 border hover:bg-pink-400 transition"
-                onClick={handleFotoClick}
-                title="Cambiar foto"
-              >
-                <img
-                  src="/img/iconos/editar.svg"
-                  alt="Editar"
-                  className="w-5 h-5"
-                />
-              </button>
+              {editando && (
+                <button
+                  type="button"
+                  className="absolute bottom-2 right-2 bg-black text-white rounded-full p-2 text-xs"
+                  onClick={() => fileInputRef.current?.click()}
+                  title="Cambiar foto"
+                >
+                  <svg
+                    className="h-5 w-5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M15.232 5.232l3.536 3.536M9 13l6.586-6.586a2 2 0 112.828 2.828L11.828 15.828a4 4 0 01-2.828 1.172H7v-2a4 4 0 011.172-2.828z"
+                    />
+                  </svg>
+                </button>
+              )}
               <input
                 type="file"
                 accept="image/*"
-                className="hidden"
                 ref={fileInputRef}
-                onChange={handleFotoChange}
+                className="hidden"
+                onChange={handleFileChange}
               />
             </div>
           </div>
@@ -165,7 +230,7 @@ export default function PerfilDatosPersonales() {
             </div>
             <div>
               <label className="block text-sm font-semibold mb-1">
-                Correo Electronico
+                Correo Electrónico
               </label>
               <input
                 type="email"

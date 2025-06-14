@@ -6,7 +6,7 @@ export default function OrdenConfirmadaPage() {
     <div className="min-h-screen flex flex-col items-center justify-center bg-white px-4">
       <div className="max-w-lg w-full text-center py-16 rounded-xl shadow bg-white border">
         <img
-          src="/img/iconos/check.svg"
+          src="/img/iconos/chulo.svg"
           alt="Pedido confirmado"
           className="mx-auto mb-6 w-20 h-20"
         />

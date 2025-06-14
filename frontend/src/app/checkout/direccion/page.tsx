@@ -3,14 +3,38 @@ import Header from "@/components/common/Header";
 import Footer from "@/components/common/Footer";
 import { useCheckout } from "../checkoutContext";
 import { useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+import { useAuth } from "@/hooks/useAuth";
 import { useUserCart } from "@/hooks/userCart";
+import axios from "axios";
 
 const STORAGE_KEY = "tussy_address";
 
 export default function DireccionPage() {
   const { setDireccion } = useCheckout();
   const router = useRouter();
+  const { token } = useAuth();
+
+  type Direccion = {
+    id: number;
+    nombre: string;
+    direccion: string;
+    departamento: string;
+    municipio: string;
+    barrio?: string;
+    apartamento?: string;
+    indicaciones?: string;
+    telefono: string;
+    ciudad?: string;
+    [key: string]: any; // For any extra fields
+  };
+
+  const [direccionesGuardadas, setDireccionesGuardadas] = useState<Direccion[]>(
+    []
+  );
+  const [direccionSeleccionada, setDireccionSeleccionada] = useState<
+    number | null
+  >(null);
 
   // Cargar dirección guardada si existe
   const [form, setForm] = useState({
@@ -54,16 +78,49 @@ export default function DireccionPage() {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (form.guardar && token) {
+      await axios.post("/api/direcciones", form, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+    }
     setDireccion({
       ...form,
-      codigoPostal: "", // Agrega aquí el valor real si lo tienes en el formulario
-      ciudad: form.municipio || "", // O ajusta según tu lógica
-      calle: form.direccion || "", // O ajusta según tu lógica
+      codigoPostal: "", // o el valor real si lo tienes
+      ciudad: form.municipio || "",
+      calle: form.direccion || "",
     });
     router.push("/checkout/pago");
   };
+
+  // Cuando el usuario selecciona una dirección guardada:
+  const handleSeleccionarDireccion = (id: number) => {
+    setDireccionSeleccionada(id);
+    const dir = direccionesGuardadas.find((d) => d.id === id);
+    if (dir)
+      setForm({
+        nombre: dir.nombre || "",
+        direccion: dir.direccion || "",
+        departamento: dir.departamento || "",
+        municipio: dir.municipio || "",
+        barrio: dir.barrio || "",
+        apartamento: dir.apartamento || "",
+        indicaciones: dir.indicaciones || "",
+        telefono: dir.telefono || "",
+        guardar: false,
+      });
+  };
+
+  useEffect(() => {
+    if (!token) return;
+    axios
+      .get("/api/direcciones", {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((res) => setDireccionesGuardadas(res.data.direcciones))
+      .catch(() => setDireccionesGuardadas([]));
+  }, [token]);
 
   return (
     <div className="min-h-screen bg-white text-black font-sans">
@@ -257,6 +314,44 @@ export default function DireccionPage() {
                 Continuar
               </button>
             </form>
+            <div className="mt-6">
+              <h3 className="text-lg font-semibold mb-4">
+                Selecciona una dirección de envío
+              </h3>
+              <div className="flex gap-4 flex-wrap">
+                {direccionesGuardadas.length === 0 ? (
+                  <div className="text-gray-500 text-sm">
+                    No tienes direcciones guardadas.
+                  </div>
+                ) : (
+                  direccionesGuardadas.map((dir) => (
+                    <div
+                      key={dir.id}
+                      className={`border rounded p-3 cursor-pointer transition-all flex-1 min-w-[250px] ${
+                        direccionSeleccionada === dir.id
+                          ? "border-black bg-gray-50"
+                          : "border-transparent"
+                      }`}
+                      onClick={() => handleSeleccionarDireccion(dir.id)}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={direccionSeleccionada === dir.id}
+                        onChange={() => handleSeleccionarDireccion(dir.id)}
+                        className="accent-primary mr-2"
+                      />
+                      <div className="flex-1">
+                        <div className="font-bold">{dir.nombre}</div>
+                        <div className="text-xs">
+                          {dir.direccion}, {dir.ciudad}, {dir.departamento}
+                        </div>
+                        <div className="text-xs">{dir.telefono}</div>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
           </div>
           {/* Resumen de compra */}
           <div className="w-full lg:w-80 shrink-0 mt-8 lg:mt-0">

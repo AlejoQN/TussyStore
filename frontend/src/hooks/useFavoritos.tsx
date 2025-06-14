@@ -4,16 +4,19 @@ import { useAuth } from "@/context/AuthContext";
 
 export function useFavoritos() {
   const { token } = useAuth();
-  const [favoritos, setFavoritos] = useState<number[]>([]); // IDs de productos favoritos
+  const [favoritos, setFavoritos] = useState<number[]>([]);
+
+  const fetchFavoritos = async () => {
+    if (!token) return setFavoritos([]);
+    const res = await axios.get("/api/favoritos", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    setFavoritos(res.data.favoritos.map((f: any) => f.id));
+  };
 
   useEffect(() => {
-    if (!token) return;
-    axios
-      .get("/api/favoritos", {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((res) => setFavoritos(res.data.favoritos.map((f: any) => f.id)))
-      .catch(() => setFavoritos([]));
+    fetchFavoritos();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
   const addFavorito = async (productoId: number) => {
@@ -23,7 +26,7 @@ export function useFavoritos() {
       { productoId },
       { headers: { Authorization: `Bearer ${token}` } }
     );
-    setFavoritos((prev) => [...prev, productoId]);
+    await fetchFavoritos();
   };
 
   const removeFavorito = async (productoId: number) => {
@@ -31,7 +34,7 @@ export function useFavoritos() {
     await axios.delete(`/api/favoritos/${productoId}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
-    setFavoritos((prev) => prev.filter((id) => id !== productoId));
+    await fetchFavoritos();
   };
 
   const isFavorito = (productoId: number) => favoritos.includes(productoId);

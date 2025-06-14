@@ -19,7 +19,14 @@ type AuthContextType = {
   loading: boolean;
 };
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+export const AuthContext = createContext<AuthContextType>({
+  user: null,
+  token: null,
+  login: async (email: string, password: string) => {},
+  logout: () => {},
+  register: async () => {},
+  loading: true,
+});
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -50,9 +57,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Login
   const login = async (email: string, password: string) => {
-    const { data } = await axios.post("/api/auth/login", { email, password });
-    setToken(data.token);
-    setUser(data.user);
+    const response = await axios.post("/api/auth/login", { email, password });
+    const { user, token } = response.data;
+    setUser(user);
+    setToken(token);
+    localStorage.setItem("tussy_token", token);
+    localStorage.setItem("tussy_user", JSON.stringify(user));
   };
 
   // Logout
@@ -67,6 +77,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const register = async (form: any) => {
     await axios.post("/api/auth/register", form);
   };
+
+  if (token) {
+    axios.get("/api/usuario/perfil", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+  }
 
   return (
     <AuthContext.Provider

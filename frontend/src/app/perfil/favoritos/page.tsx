@@ -201,13 +201,22 @@ export default function PerfilFavoritos() {
                 </div>
               ) : (
                 <ul>
-                  {favoritosFiltrados.map((fav) => (
+                  {favoritosFiltrados.map((fav, idx) => (
                     <li
-                      key={fav.id}
+                      key={`${fav.id}-${idx}`}
                       className="flex items-center gap-4 py-6 border-b last:border-b-0"
                     >
                       <img
-                        src={fav.imagen}
+                        src={
+                          fav.imagen?.startsWith("http")
+                            ? fav.imagen
+                            : fav.imagen
+                            ? `/uploads/${fav.imagen.replace(
+                                /^\/?uploads\//,
+                                ""
+                              )}`
+                            : "/img/no-image.png"
+                        }
                         alt={fav.nombre}
                         className="h-20 w-20 object-contain rounded"
                       />

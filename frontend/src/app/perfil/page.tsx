@@ -1,77 +1,178 @@
 "use client";
 import Header from "@/components/common/Header";
 import Footer from "@/components/common/Footer";
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import Link from "next/link";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function PerfilPage() {
+  const { token, setUser, loading } = useAuth();
   const [vista, setVista] = useState<
     "datos" | "ordenes" | "favoritos" | "direcciones" | "eliminar"
   >("datos");
   const [form, setForm] = useState({
     nombres: "",
-    apellidos: "",
     telefono: "",
     correo: "",
     direccion: "",
     foto: "",
   });
-  const [loading, setLoading] = useState(true);
+  const [loadingState, setLoading] = useState(true);
   const [mensaje, setMensaje] = useState("");
-  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const [passForm, setPassForm] = useState({
+    actual: "",
+    nueva: "",
+    confirmar: "",
+  });
+  const [passMsg, setPassMsg] = useState("");
+
+  const [editando, setEditando] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   // Cargar datos reales del usuario al montar
   useEffect(() => {
+    if (loading) return; // Espera a que el contexto termine de cargar
+    if (!token) {
+      setMensaje("No autenticado");
+      setLoading(false);
+      return;
+    }
     async function fetchUser() {
       try {
-        const { data } = await axios.get("/api/usuario/perfil");
-        setForm({
-          nombres: data.nombres || "",
-          apellidos: data.apellidos || "",
-          telefono: data.telefono || "",
-          correo: data.correo || "",
-          direccion: data.direccion || "",
-          foto: data.foto || "/img/perfil-demo.jpg",
+        const { data } = await axios.get("/api/usuario/perfil", {
+          headers: { Authorization: `Bearer ${token}` },
         });
-      } catch {
-        setMensaje("Error cargando datos del usuario");
+        const foto =
+          data.foto &&
+          !data.foto.startsWith("http") &&
+          !data.foto.startsWith("/uploads/")
+            ? `/uploads/${data.foto.replace(/^\/?uploads\//, "")}`
+            : data.foto || "/img/perfil-demo.jpg";
+        setForm({
+          nombres: data.nombre || "",
+          correo: data.email || "",
+          telefono: data.telefono || "",
+          direccion: data.direccion || "",
+          foto,
+        });
+        setUser &&
+          setUser((prev: any) => ({
+            ...prev,
+            nombre: data.nombre || "",
+            email: data.email || "",
+            telefono: data.telefono || "",
+            direccion: data.direccion || "",
+            foto,
+          }));
+        setMensaje("");
+      } catch (err: any) {
+        setMensaje(
+          err.response?.data?.error || "Error cargando datos del usuario"
+        );
       } finally {
         setLoading(false);
       }
     }
     fetchUser();
-  }, []);
-
-  // Cambiar foto de perfil
-  const handleFotoClick = () => {
-    fileInputRef.current?.click();
-  };
-  const handleFotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const url = URL.createObjectURL(file);
-      setForm((prev) => ({ ...prev, foto: url }));
-      // Aquí deberías subir la imagen al backend y guardar la URL real
-    }
-  };
+  }, [token, loading, setUser]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
+  // Al guardar cambios
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     try {
-      await axios.put("/api/usuario/perfil", form);
+      await axios.put(
+        "/api/usuario/perfil",
+        {
+          nombre: form.nombres,
+          telefono: form.telefono,
+          direccion: form.direccion,
+          foto: form.foto,
+          email: form.correo,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
       setMensaje("Datos guardados correctamente");
+      // Actualiza el contexto global
+      setUser &&
+        setUser((prev: any) => ({
+          ...prev,
+          nombre: form.nombres,
+          telefono: form.telefono,
+          direccion: form.direccion,
+          foto: form.foto,
+          email: form.correo,
+        }));
       setTimeout(() => setMensaje(""), 2000);
     } catch {
       setMensaje("Error al guardar los datos");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handlePassChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setPassForm({ ...passForm, [e.target.name]: e.target.value });
+  };
+
+  const handlePassSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPassMsg("");
+    if (passForm.nueva !== passForm.confirmar) {
+      setPassMsg("Las contraseñas nuevas no coinciden.");
+      return;
+    }
+    try {
+      await axios.post(
+        "/api/auth/cambiar-password",
+        { actual: passForm.actual, nueva: passForm.nueva },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setPassMsg("¡Contraseña actualizada correctamente!");
+      setPassForm({ actual: "", nueva: "", confirmar: "" });
+    } catch (err: any) {
+      setPassMsg(err.response?.data?.error || "Error al cambiar la contraseña");
+    }
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const formData = new FormData();
+    formData.append("foto", file);
+    try {
+      const { data } = await axios.post("/api/usuario/subir-foto", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const fotoUrl = data.url
+        ? `/uploads/${data.url.replace(/^\/?uploads\//, "")}`
+        : data.foto
+        ? `/uploads/${data.foto.replace(/^\/?uploads\//, "")}`
+        : form.foto;
+      setForm((prev) => ({
+        ...prev,
+        foto: fotoUrl,
+      }));
+      // Actualiza el contexto global
+      setUser && setUser((prev: any) => ({ ...prev, foto: fotoUrl }));
+      setMensaje("Foto actualizada correctamente");
+      setTimeout(() => setMensaje(""), 2000);
+    } catch {
+      setMensaje("Error al subir la foto");
     }
   };
 
@@ -229,34 +330,38 @@ export default function PerfilPage() {
                   <img
                     src={form.foto || "/img/perfil-demo.jpg"}
                     alt="Foto de perfil"
-                    className="w-24 h-24 rounded-full object-cover border"
+                    className="w-28 h-28 rounded-full object-cover border shadow"
                   />
-                  <button
-                    type="button"
-                    className="absolute bottom-2 right-2 bg-gray-200 rounded-full p-2 border hover:bg-pink-400 transition"
-                    onClick={handleFotoClick}
-                    title="Cambiar foto"
-                  >
-                    {/* SVG editar */}
-                    <svg
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      className="w-5 h-5"
-                      stroke="currentColor"
+                  {/* Botón para cambiar foto, visible solo en modo edición */}
+                  {editando && (
+                    <button
+                      type="button"
+                      className="absolute bottom-2 right-2 bg-black text-white rounded-full p-2 text-xs"
+                      onClick={() => fileInputRef.current?.click()}
+                      title="Cambiar foto"
                     >
-                      <path d="M12 20h9" strokeWidth="2" />
-                      <path
-                        d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19.5 3 21l1.5-4L16.5 3.5Z"
-                        strokeWidth="2"
-                      />
-                    </svg>
-                  </button>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-5 w-5"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M15.232 5.232l3.536 3.536M9 13l6.586-6.586a2 2 0 112.828 2.828L11.828 15.828a4 4 0 01-2.828 1.172H7v-2a4 4 0 011.172-2.828z"
+                        />
+                      </svg>
+                    </button>
+                  )}
                   <input
                     type="file"
                     accept="image/*"
-                    className="hidden"
                     ref={fileInputRef}
-                    onChange={handleFotoChange}
+                    className="hidden"
+                    onChange={handleFileChange}
                   />
                 </div>
               </div>
@@ -269,19 +374,6 @@ export default function PerfilPage() {
                     type="text"
                     name="nombres"
                     value={form.nombres}
-                    onChange={handleChange}
-                    className="w-full border rounded px-3 py-2"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold mb-1">
-                    Apellidos
-                  </label>
-                  <input
-                    type="text"
-                    name="apellidos"
-                    value={form.apellidos}
                     onChange={handleChange}
                     className="w-full border rounded px-3 py-2"
                     required
@@ -327,14 +419,23 @@ export default function PerfilPage() {
                   required
                 />
               </div>
-              <div className="flex justify-end">
-                <button
-                  type="submit"
-                  className="bg-primary text-white px-8 py-2 rounded font-semibold"
-                  disabled={loading}
-                >
-                  Guardar cambios
-                </button>
+              <div className="flex justify-end gap-3">
+                {!editando ? (
+                  <button
+                    type="button"
+                    className="bg-primary text-white px-8 py-2 rounded font-semibold"
+                    onClick={() => setEditando(true)}
+                  >
+                    Editar
+                  </button>
+                ) : (
+                  <button
+                    type="submit"
+                    className="bg-primary text-white px-8 py-2 rounded font-semibold"
+                  >
+                    Guardar cambios
+                  </button>
+                )}
               </div>
               {mensaje && (
                 <div className="mt-4 text-green-600 font-semibold">
@@ -360,6 +461,95 @@ export default function PerfilPage() {
             </div>
           )}
         </div>
+        {vista === "datos" && (
+          <form
+            onSubmit={handlePassSubmit}
+            className="max-w-md mx-auto mt-12 bg-white p-8 rounded-xl shadow-lg border flex flex-col gap-4"
+          >
+            <div className="flex items-center gap-3 mb-2">
+              <span className="inline-flex items-center justify-center bg-primary/10 text-primary rounded-full w-10 h-10">
+                <svg
+                  className="w-6 h-6"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M12 15v2m0 4a2 2 0 002-2h-4a2 2 0 002 2zm6-6V9a6 6 0 10-12 0v6a2 2 0 002 2h8a2 2 0 002-2z"
+                  />
+                </svg>
+              </span>
+              <h2 className="font-bold text-xl text-black">
+                Cambiar contraseña
+              </h2>
+            </div>
+            <div className="text-gray-500 text-sm mb-2">
+              Cambia tu contraseña para mantener tu cuenta segura.
+            </div>
+            <div>
+              <label className="block text-sm font-semibold mb-1 text-black">
+                Contraseña actual
+              </label>
+              <input
+                type="password"
+                name="actual"
+                placeholder="Contraseña actual"
+                className="w-full border rounded px-3 py-2 mb-2 focus:outline-none focus:ring-2 focus:ring-primary"
+                value={passForm.actual}
+                onChange={handlePassChange}
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold mb-1 text-black">
+                Nueva contraseña
+              </label>
+              <input
+                type="password"
+                name="nueva"
+                placeholder="Nueva contraseña"
+                className="w-full border rounded px-3 py-2 mb-2 focus:outline-none focus:ring-2 focus:ring-primary"
+                value={passForm.nueva}
+                onChange={handlePassChange}
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold mb-1 text-black">
+                Confirmar nueva contraseña
+              </label>
+              <input
+                type="password"
+                name="confirmar"
+                placeholder="Confirmar nueva contraseña"
+                className="w-full border rounded px-3 py-2 mb-2 focus:outline-none focus:ring-2 focus:ring-primary"
+                value={passForm.confirmar}
+                onChange={handlePassChange}
+                required
+              />
+            </div>
+            {passMsg && (
+              <div
+                className={`mb-2 text-sm text-center font-semibold ${
+                  passMsg.includes("correcta")
+                    ? "text-green-600"
+                    : "text-red-600"
+                }`}
+              >
+                {passMsg}
+              </div>
+            )}
+            <button
+              type="submit"
+              className="bg-primary hover:bg-black transition-colors text-white px-8 py-2 rounded font-semibold mt-2"
+            >
+              Cambiar contraseña
+            </button>
+          </form>
+        )}
       </main>
       <Footer />
     </div>
