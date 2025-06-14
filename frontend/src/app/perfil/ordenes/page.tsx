@@ -9,11 +9,32 @@ import PerfilSidebar from "@/components/perfil/PerfilSidebar";
 import { useRouter } from "next/navigation";
 import { useUserCart } from "@/hooks/userCart";
 
+type Producto = {
+  producto_id?: number;
+  id?: number;
+  nombre: string;
+  imagen?: string;
+  precio: number;
+  cantidad: number;
+  talla?: string;
+  color?: string;
+  stock?: number;
+};
+
+type Orden = {
+  id: number;
+  producto?: Producto;
+  productos?: Producto[];
+  estado: string;
+  total?: number;
+};
+
 export default function PerfilOrdenes() {
   const { token, user } = useAuth();
   const { addToCart } = useUserCart();
   const router = useRouter();
-  const [ordenes, setOrdenes] = useState([]);
+
+  const [ordenes, setOrdenes] = useState<Orden[]>([]);
   const [vista, setVista] = useState("ordenes");
   const [notificacion, setNotificacion] = useState("");
 
@@ -23,11 +44,11 @@ export default function PerfilOrdenes() {
       .get("/api/ordenes", {
         headers: { Authorization: `Bearer ${token}` },
       })
-      .then((res) => setOrdenes(res.data.ordenes))
+      .then((res) => setOrdenes(res.data.ordenes || []))
       .catch(() => setOrdenes([]));
   }, [token]);
 
-  const handleCancel = async (id) => {
+  const handleCancel = async (id: number) => {
     if (!token) return;
     await axios.put(
       `/api/ordenes/cancelar/${id}`,
@@ -38,16 +59,20 @@ export default function PerfilOrdenes() {
     const res = await axios.get("/api/ordenes", {
       headers: { Authorization: `Bearer ${token}` },
     });
-    setOrdenes(res.data.ordenes);
+    setOrdenes(res.data.ordenes || []);
   };
 
   // Función para volver a comprar
-  const handleVolverAComprar = async (orden) => {
-    // Si la orden tiene varios productos
-    const productos = orden.productos ? orden.productos : [orden.producto];
+  const handleVolverAComprar = async (orden: Orden) => {
+    const productos =
+      orden.productos && Array.isArray(orden.productos)
+        ? orden.productos
+        : orden.producto
+        ? [orden.producto]
+        : [];
     for (const prod of productos) {
-      // Si la cantidad es mayor a 1, agrega cada unidad como un ítem separado
-      for (let i = 0; i < prod.cantidad; i++) {
+      if (!prod) continue;
+      for (let i = 0; i < (prod.cantidad || 1); i++) {
         await addToCart({
           producto_id: prod.producto_id || prod.id,
           nombre: prod.nombre,
@@ -201,7 +226,8 @@ export default function PerfilOrdenes() {
                   type="text"
                   placeholder="Buscar"
                   className="border rounded px-3 py-2 w-64"
-                  // Implementa el estado y lógica de búsqueda
+                  // Implementa el estado y lógica de búsqueda si lo necesitas
+                  readOnly
                 />
               </div>
               {ordenes.length === 0 && (
@@ -212,7 +238,7 @@ export default function PerfilOrdenes() {
               {ordenes.map((orden, idx) =>
                 orden.producto ? (
                   <div
-                    key={idx}
+                    key={orden.id || idx}
                     className="flex flex-col md:flex-row items-center gap-4 border-b pb-4"
                   >
                     {/* Imagen */}
@@ -284,6 +310,7 @@ export default function PerfilOrdenes() {
                           onClick={() =>
                             router.push(`/perfil/ordenes/${orden.id}`)
                           }
+                          type="button"
                         >
                           Ver Orden
                         </button>
@@ -291,10 +318,18 @@ export default function PerfilOrdenes() {
                           <button
                             className="bg-red-200 text-red-700 px-3 py-1 rounded text-sm font-semibold hover:bg-red-300"
                             onClick={() => handleCancel(orden.id)}
+                            type="button"
                           >
                             Cancelar Orden
                           </button>
                         )}
+                        <button
+                          className="bg-primary text-white px-3 py-1 rounded text-sm font-semibold hover:bg-pink-600"
+                          onClick={() => handleVolverAComprar(orden)}
+                          type="button"
+                        >
+                          Volver a comprar
+                        </button>
                       </div>
                     </div>
                   </div>

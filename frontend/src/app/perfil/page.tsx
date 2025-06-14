@@ -13,6 +13,7 @@ export default function PerfilPage() {
   >("datos");
   const [form, setForm] = useState({
     nombres: "",
+    apellidos: "",
     telefono: "",
     correo: "",
     direccion: "",
@@ -49,9 +50,10 @@ export default function PerfilPage() {
           !data.foto.startsWith("http") &&
           !data.foto.startsWith("/uploads/")
             ? `/uploads/${data.foto.replace(/^\/?uploads\//, "")}`
-            : data.foto || "/img/perfil-demo.jpg";
+            : data.foto || "";
         setForm({
           nombres: data.nombre || "",
+          apellidos: data.apellidos || "",
           correo: data.email || "",
           telefono: data.telefono || "",
           direccion: data.direccion || "",
@@ -103,17 +105,16 @@ export default function PerfilPage() {
           },
         }
       );
-      setMensaje("Datos guardados correctamente");
-      // Actualiza el contexto global
-      setUser &&
-        setUser((prev: any) => ({
-          ...prev,
-          nombre: form.nombres,
-          telefono: form.telefono,
-          direccion: form.direccion,
-          foto: form.foto,
-          email: form.correo,
-        }));
+        setUser &&
+          setUser((prev: any) => ({
+            ...prev,
+            nombre: form.nombres,
+            apellidos: form.apellidos,
+            telefono: form.telefono,
+            direccion: form.direccion,
+            foto: form.foto,
+            email: form.correo,
+          }));
       setTimeout(() => setMensaje(""), 2000);
     } catch {
       setMensaje("Error al guardar los datos");

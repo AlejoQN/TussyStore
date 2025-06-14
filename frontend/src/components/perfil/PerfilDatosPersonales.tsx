@@ -7,6 +7,7 @@ export default function PerfilDatosPersonales() {
   const { token } = useAuth();
   const [form, setForm] = useState({
     nombre: "",
+    apellidos: "",
     email: "",
     telefono: "",
     direccion: "",
@@ -26,6 +27,7 @@ export default function PerfilDatosPersonales() {
         });
         setForm({
           nombre: data.nombre || "",
+          apellidos: data.apellidos || "",
           email: data.email || "",
           telefono: data.telefono || "",
           direccion: data.direccion || "",
@@ -192,8 +194,8 @@ export default function PerfilDatosPersonales() {
               </label>
               <input
                 type="text"
-                name="nombres"
-                value={form.nombres}
+                name="nombre"
+                value={form.nombre}
                 onChange={handleChange}
                 className="w-full border rounded px-3 py-2"
                 required
@@ -234,8 +236,8 @@ export default function PerfilDatosPersonales() {
               </label>
               <input
                 type="email"
-                name="correo"
-                value={form.correo}
+                name="email"
+                value={form.email}
                 onChange={handleChange}
                 className="w-full border rounded px-3 py-2"
                 required

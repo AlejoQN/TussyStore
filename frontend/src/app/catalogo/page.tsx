@@ -145,12 +145,10 @@ export default function CatalogoPage() {
                   descuento={p.descuento}
                   descripcion={p.descripcion}
                   favorito={isFavorito(p.id)}
-                  onToggleFavorite={(e) => {
-                    e?.stopPropagation?.();
+                  onToggleFavorite={() => {
                     isFavorito(p.id) ? removeFavorito(p.id) : addFavorito(p.id);
                   }}
-                  onAddToCart={(e) => {
-                    e?.stopPropagation?.();
+                  onAddToCart={() => {
                     addToCart({
                       producto_id: p.id,
                       nombre: p.nombre,
