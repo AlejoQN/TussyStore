@@ -10,7 +10,8 @@ export default function Header() {
   const { user, logout } = useAuth();
   const router = useRouter();
   const [showCategorias, setShowCategorias] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false); // Hamburguesa
+  const [userMenuOpen, setUserMenuOpen] = useState(false); // Menú usuario
   const [search, setSearch] = useState("");
   const [suggestions, setSuggestions] = useState<any[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
@@ -247,7 +248,7 @@ export default function Header() {
           <div className="relative" ref={menuRef}>
             <button
               className="focus:outline-none"
-              onClick={() => setMenuOpen((v) => !v)}
+              onClick={() => setUserMenuOpen((v) => !v)}
               aria-label="Abrir menú de usuario"
             >
               <img
@@ -262,7 +263,7 @@ export default function Header() {
                 className="h-8 w-8 rounded-full object-cover border"
               />
             </button>
-            {menuOpen && (
+            {userMenuOpen && (
               <div className="absolute right-0 mt-2 w-48 bg-white border rounded shadow-lg z-50 py-2">
                 <div className="px-4 py-2 font-semibold text-black border-b">
                   {user.nombre}
@@ -272,7 +273,7 @@ export default function Header() {
                   <button
                     className="w-full text-left px-4 py-2 hover:bg-gray-100"
                     onClick={() => {
-                      setMenuOpen(false);
+                      setUserMenuOpen(false);
                       router.push("/admin/overview");
                     }}
                   >
@@ -282,7 +283,7 @@ export default function Header() {
                 <button
                   className="w-full text-left px-4 py-2 hover:bg-gray-100"
                   onClick={() => {
-                    setMenuOpen(false);
+                    setUserMenuOpen(false);
                     router.push("/perfil");
                   }}
                 >
@@ -291,7 +292,7 @@ export default function Header() {
                 <button
                   className="w-full text-left px-4 py-2 hover:bg-gray-100 text-red-600"
                   onClick={() => {
-                    setMenuOpen(false);
+                    setUserMenuOpen(false);
                     logout();
                   }}
                 >
@@ -309,6 +310,131 @@ export default function Header() {
           </Link>
         )}
       </div>
+      {/* Menú móvil */}
+      {menuOpen && (
+        <nav
+          ref={menuRef}
+          className={`fixed md:hidden top-0 left-0 w-3/4 max-w-xs h-full bg-white shadow-lg z-50 transition-transform duration-200 ${
+            menuOpen ? "translate-x-0" : "-translate-x-full"
+          } flex flex-col gap-8 p-8`}
+        >
+          <button
+            className="text-2xl mb-8 self-end"
+            onClick={() => setMenuOpen(false)}
+            aria-label="Cerrar menú"
+          >
+            ×
+          </button>
+          <Link
+            href="/"
+            className="hover:text-primary font-medium"
+            onClick={() => setMenuOpen(false)}
+          >
+            Home
+          </Link>
+          <Link
+            href="/catalogo"
+            className="hover:text-primary font-medium"
+            onClick={() => setMenuOpen(false)}
+          >
+            Catálogo
+          </Link>
+          <Link
+            href="/sobre-nosotros"
+            className="hover:text-primary font-medium"
+            onClick={() => setMenuOpen(false)}
+          >
+            Sobre Nosotros
+          </Link>
+          {/* Favoritos y Carrito */}
+          <button
+            className="flex items-center gap-2 mt-2 px-4 py-2 rounded bg-pink-100 text-pink-700 font-semibold"
+            onClick={() => {
+              setMenuOpen(false);
+              router.push("/perfil/favoritos");
+            }}
+          >
+            <img
+              src="/img/iconos/favorito.svg"
+              alt="Favoritos"
+              className="h-7 w-7"
+            />
+            Favoritos
+          </button>
+          <button
+            className="flex items-center gap-2 mt-2 px-4 py-2 rounded bg-yellow-100 text-yellow-700 font-semibold"
+            onClick={() => {
+              setMenuOpen(false);
+              router.push("/cart");
+            }}
+          >
+            <img
+              src="/img/iconos/carrito.svg"
+              alt="Carrito"
+              className="h-7 w-7"
+            />
+            Carrito
+          </button>
+          {/* Acceso a perfil o login */}
+          {user ? (
+            <>
+              {user.rol === "admin" && (
+                <button
+                  className="flex items-center gap-2 mt-4 px-4 py-2 rounded bg-blue-600 text-white font-semibold"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    router.push("/admin/overview");
+                  }}
+                >
+                  <img
+                    src="/img/iconos/analiticas.svg"
+                    alt="Dashboard"
+                    className="h-7 w-7"
+                  />
+                  Dashboard
+                </button>
+              )}
+              <button
+                className="flex items-center gap-2 mt-4 px-4 py-2 rounded bg-black text-white font-semibold"
+                onClick={() => {
+                  setMenuOpen(false);
+                  router.push("/perfil");
+                }}
+              >
+                <img
+                  src={
+                    user.foto
+                      ? user.foto.startsWith("http")
+                        ? user.foto
+                        : `/uploads/${user.foto.replace(/^\/?uploads\//, "")}`
+                      : "/img/perfil-demo.jpg"
+                  }
+                  alt="Perfil"
+                  className="h-8 w-8 rounded-full object-cover border"
+                />
+                Mi perfil
+              </button>
+              <button
+                className="w-full text-left px-4 py-2 mt-2 rounded hover:bg-red-100 text-red-600"
+                onClick={() => {
+                  setMenuOpen(false);
+                  logout();
+                }}
+              >
+                Cerrar sesión
+              </button>
+            </>
+          ) : (
+            <Link
+              href="/login"
+              className="mt-4 px-4 py-2 border rounded bg-primary text-white font-semibold"
+              onClick={() => setMenuOpen(false)}
+            >
+              Iniciar sesión
+            </Link>
+          )}
+        </nav>
+      )}
     </header>
   );
 }

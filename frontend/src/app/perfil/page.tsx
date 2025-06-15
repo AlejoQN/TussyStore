@@ -197,26 +197,30 @@ export default function PerfilPage() {
   return (
     <div className="min-h-screen bg-white text-black flex flex-col">
       <Header />
-      <main className="flex-1 max-w-6xl mx-auto w-full px-2 sm:px-4 py-8">
-        <h1 className="text-3xl font-bold mb-8 mt-4">Mi perfil</h1>
-        <div className="flex flex-col lg:flex-row gap-10">
+      <main className="flex-1 max-w-6xl mx-auto w-full px-2 sm:px-4 py-6 sm:py-8">
+        <h1 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8 mt-2 sm:mt-4 text-center sm:text-left">
+          Mi perfil
+        </h1>
+        <div className="flex flex-col lg:flex-row gap-6 sm:gap-10">
           {/* Sidebar */}
-          <aside className="w-full max-w-xs lg:w-72 bg-white border rounded-xl shadow p-0 mb-8 lg:mb-0 self-start">
+          <aside className="w-full max-w-full sm:max-w-xs lg:w-72 bg-white border rounded-xl shadow p-0 mb-6 lg:mb-0 self-start">
             <div className="flex flex-col items-center gap-2 py-6 border-b">
               <img
                 src={form.foto || "/img/perfil-demo.jpg"}
                 alt="Foto de perfil"
-                className="w-14 h-14 rounded-full object-cover border"
+                className="w-16 h-16 sm:w-14 sm:h-14 rounded-full object-cover border"
               />
-              <div className="font-semibold text-sm text-gray-700 mt-2">
+              <div className="font-semibold text-xs sm:text-sm text-gray-700 mt-2">
                 Hola <span className="text-lg">👋</span>
               </div>
-              <div className="font-bold">{form.nombres}</div>
+              <div className="font-bold text-base sm:text-lg">
+                {form.nombres}
+              </div>
             </div>
             <nav className="flex flex-col gap-0 mt-2">
               <Link
                 href="/perfil"
-                className={`flex items-center gap-2 px-6 py-3 text-base text-left ${
+                className={`flex items-center gap-2 px-4 sm:px-6 py-3 text-base text-left ${
                   vista === "datos"
                     ? "bg-black text-white font-semibold"
                     : "hover:bg-gray-100"
@@ -242,7 +246,7 @@ export default function PerfilPage() {
               </Link>
               <Link
                 href="/perfil/ordenes"
-                className={`flex items-center gap-2 px-6 py-3 text-base text-left ${
+                className={`flex items-center gap-2 px-4 sm:px-6 py-3 text-base text-left ${
                   vista === "ordenes"
                     ? "bg-black text-white font-semibold"
                     : "hover:bg-gray-100"
@@ -272,7 +276,7 @@ export default function PerfilPage() {
               </Link>
               <Link
                 href="/perfil/favoritos"
-                className={`flex items-center gap-2 px-6 py-3 text-base text-left ${
+                className={`flex items-center gap-2 px-4 sm:px-6 py-3 text-base text-left ${
                   vista === "favoritos"
                     ? "bg-black text-white font-semibold"
                     : "hover:bg-gray-100"
@@ -297,7 +301,7 @@ export default function PerfilPage() {
               </Link>
               <Link
                 href="/perfil/direcciones"
-                className={`flex items-center gap-2 px-6 py-3 text-base text-left ${
+                className={`flex items-center gap-2 px-4 sm:px-6 py-3 text-base text-left ${
                   vista === "direcciones"
                     ? "bg-black text-white font-semibold"
                     : "hover:bg-gray-100"
@@ -323,7 +327,7 @@ export default function PerfilPage() {
               </Link>
             </nav>
             <button
-              className="text-xs text-red-500 hover:underline px-6 py-3 text-left flex items-center"
+              className="text-xs text-red-500 hover:underline px-4 sm:px-6 py-3 text-left flex items-center"
               onClick={() => setShowDeletePopup(true)}
               type="button"
             >
@@ -344,131 +348,135 @@ export default function PerfilPage() {
             </button>
           </aside>
           {/* Formulario principal */}
-          {vista === "datos" && (
-            <form className="flex-1" onSubmit={handleSubmit}>
-              <div className="flex flex-col items-center mb-8">
-                <div className="relative group">
-                  <img
-                    src={form.foto || "/img/perfil-demo.jpg"}
-                    alt="Foto de perfil"
-                    className="w-28 h-28 rounded-full object-cover border shadow"
-                  />
-                  <button
-                    type="button"
-                    className="absolute bottom-2 right-2 bg-black text-white rounded-full p-2 text-xs"
-                    onClick={() => fileInputRef.current?.click()}
-                    title="Cambiar foto"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-5 w-5"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
+          <div className="flex-1">
+            {vista === "datos" && (
+              <form className="w-full" onSubmit={handleSubmit}>
+                <div className="flex flex-col items-center mb-8">
+                  <div className="relative group">
+                    <img
+                      src={form.foto || "/img/perfil-demo.jpg"}
+                      alt="Foto de perfil"
+                      className="w-24 h-24 sm:w-28 sm:h-28 rounded-full object-cover border shadow"
+                    />
+                    <button
+                      type="button"
+                      className="absolute bottom-2 right-2 bg-black text-white rounded-full p-2 text-xs"
+                      onClick={() => fileInputRef.current?.click()}
+                      title="Cambiar foto"
                     >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M15.232 5.232l3.536 3.536M9 13l6.586-6.586a2 2 0 112.828 2.828L11.828 15.828a4 4 0 01-2.828 1.172H7v-2a4 4 0 011.172-2.828z"
-                      />
-                    </svg>
-                  </button>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-5 w-5"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M15.232 5.232l3.536 3.536M9 13l6.586-6.586a2 2 0 112.828 2.828L11.828 15.828a4 4 0 01-2.828 1.172H7v-2a4 4 0 011.172-2.828z"
+                        />
+                      </svg>
+                    </button>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      ref={fileInputRef}
+                      className="hidden"
+                      onChange={handleFileChange}
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mb-6">
+                  <div>
+                    <label className="block text-sm font-semibold mb-1">
+                      Nombres
+                    </label>
+                    <input
+                      type="text"
+                      name="nombres"
+                      value={form.nombres}
+                      onChange={handleChange}
+                      className="w-full border rounded px-3 py-2"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold mb-1">
+                      Teléfono
+                    </label>
+                    <input
+                      type="tel"
+                      name="telefono"
+                      value={form.telefono}
+                      onChange={handleChange}
+                      className="w-full border rounded px-3 py-2"
+                      required
+                    />
+                  </div>
+                </div>
+                {/* Correo Electronico (una sola columna, ancho completo) */}
+                <div className="mb-6">
+                  <label className="block text-sm font-semibold mb-1">
+                    Correo Electronico
+                  </label>
                   <input
-                    type="file"
-                    accept="image/*"
-                    ref={fileInputRef}
-                    className="hidden"
-                    onChange={handleFileChange}
+                    type="email"
+                    name="correo"
+                    value={form.correo}
+                    onChange={handleChange}
+                    className="w-full border rounded px-3 py-2"
+                    required
                   />
                 </div>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                <div>
+                <div className="mb-6">
                   <label className="block text-sm font-semibold mb-1">
-                    Nombres
+                    Dirección
                   </label>
                   <input
                     type="text"
-                    name="nombres"
-                    value={form.nombres}
+                    name="direccion"
+                    value={form.direccion}
                     onChange={handleChange}
                     className="w-full border rounded px-3 py-2"
                     required
                   />
                 </div>
-                <div>
-                  <label className="block text-sm font-semibold mb-1">
-                    Teléfono
-                  </label>
-                  <input
-                    type="tel"
-                    name="telefono"
-                    value={form.telefono}
-                    onChange={handleChange}
-                    className="w-full border rounded px-3 py-2"
-                    required
-                  />
+                <div className="flex flex-col sm:flex-row justify-end gap-3">
+                  <button
+                    type="submit"
+                    className="bg-primary text-white px-8 py-2 rounded font-semibold"
+                  >
+                    Guardar cambios
+                  </button>
                 </div>
+                {mensaje && (
+                  <div className="mt-4 text-green-600 font-semibold text-center">
+                    {mensaje}
+                  </div>
+                )}
+              </form>
+            )}
+            {vista === "ordenes" && (
+              <div className="w-full">{/* Aquí irá la vista de órdenes */}</div>
+            )}
+            {vista === "favoritos" && (
+              <div className="w-full">
+                {/* Aquí irá la vista de favoritos */}
               </div>
-              {/* Correo Electronico (una sola columna, ancho completo) */}
-              <div className="mb-6">
-                <label className="block text-sm font-semibold mb-1">
-                  Correo Electronico
-                </label>
-                <input
-                  type="email"
-                  name="correo"
-                  value={form.correo}
-                  onChange={handleChange}
-                  className="w-full border rounded px-3 py-2"
-                  required
-                />
+            )}
+            {vista === "direcciones" && (
+              <div className="w-full">
+                {/* Aquí irá la vista de direcciones */}
               </div>
-              <div className="mb-6">
-                <label className="block text-sm font-semibold mb-1">
-                  Dirección
-                </label>
-                <input
-                  type="text"
-                  name="direccion"
-                  value={form.direccion}
-                  onChange={handleChange}
-                  className="w-full border rounded px-3 py-2"
-                  required
-                />
-              </div>
-              <div className="flex justify-end gap-3">
-                <button
-                  type="submit"
-                  className="bg-primary text-white px-8 py-2 rounded font-semibold"
-                >
-                  Guardar cambios
-                </button>
-              </div>
-              {mensaje && (
-                <div className="mt-4 text-green-600 font-semibold">
-                  {mensaje}
-                </div>
-              )}
-            </form>
-          )}
-          {vista === "ordenes" && (
-            <div className="flex-1"> {/* Aquí irá la vista de órdenes */} </div>
-          )}
-          {vista === "favoritos" && (
-            <div className="flex-1">{/* Aquí irá la vista de favoritos */}</div>
-          )}
-          {vista === "direcciones" && (
-            <div className="flex-1">
-              {/* Aquí irá la vista de direcciones */}
-            </div>
-          )}
+            )}
+          </div>
         </div>
         {vista === "datos" && (
           <form
             onSubmit={handlePassSubmit}
-            className="max-w-md mx-auto mt-12 bg-white p-8 rounded-xl shadow-lg border flex flex-col gap-4"
+            className="max-w-md mx-auto mt-10 sm:mt-12 bg-white p-4 sm:p-8 rounded-xl shadow-lg border flex flex-col gap-4"
           >
             <div className="flex items-center gap-3 mb-2">
               <span className="inline-flex items-center justify-center bg-primary/10 text-primary rounded-full w-10 h-10">
@@ -486,7 +494,7 @@ export default function PerfilPage() {
                   />
                 </svg>
               </span>
-              <h2 className="font-bold text-xl text-black">
+              <h2 className="font-bold text-lg sm:text-xl text-black">
                 Cambiar contraseña
               </h2>
             </div>
@@ -558,8 +566,10 @@ export default function PerfilPage() {
       <Footer />
       {showDeletePopup && (
         <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-8 shadow-lg text-center max-w-md w-full">
-            <div className="text-xl font-bold mb-4">Eliminar cuenta</div>
+          <div className="bg-white rounded-lg p-6 sm:p-8 shadow-lg text-center max-w-md w-full">
+            <div className="text-lg sm:text-xl font-bold mb-4">
+              Eliminar cuenta
+            </div>
             <div className="mb-6 text-gray-700">
               ¿Estás seguro de eliminar tu cuenta?
             </div>

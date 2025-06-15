@@ -4,7 +4,7 @@ import { useParams, useRouter } from "next/navigation";
 import Header from "@/components/common/Header";
 import Footer from "@/components/common/Footer";
 import axios from "axios";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/context/AuthContext";
 
 export default function DetalleOrden() {
   const { id } = useParams();

@@ -64,11 +64,13 @@ export default function AnalyticsPage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-[#F6F7FB] text-black">
-      <main className="flex-1 max-w-5xl mx-auto px-2 py-8 w-full">
+      <main className="flex-1 max-w-5xl mx-auto px-2 sm:px-4 py-6 sm:py-8 w-full">
         {/* Ventas */}
-        <section className="bg-white rounded-xl shadow p-6 mb-6">
-          <div className="flex justify-between items-center mb-2">
-            <h2 className="font-semibold text-base text-[#3B82F6]">Ventas</h2>
+        <section className="bg-white rounded-xl shadow p-3 sm:p-6 mb-4 sm:mb-6">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-2 gap-2">
+            <h2 className="font-semibold text-base sm:text-lg text-[#3B82F6]">
+              Ventas
+            </h2>
             <div className="flex gap-2">
               {filtros.map((f) => (
                 <button
@@ -85,32 +87,41 @@ export default function AnalyticsPage() {
               ))}
             </div>
           </div>
-          <ResponsiveContainer width="100%" height={140}>
-            <LineChart data={ventas}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} />
-              <XAxis dataKey="periodo" tick={{ fontSize: 12 }} />
-              <YAxis domain={[0, maxVentas]} tick={{ fontSize: 12 }} />
-              <Tooltip content={<CustomTooltip tipo="ventas" />} />
-              <Line
-                type="monotone"
-                dataKey="total"
-                stroke="#3B82F6"
-                strokeWidth={2.5}
-                dot={{ r: 5, fill: "#3B82F6", stroke: "#fff", strokeWidth: 2 }}
-                activeDot={{
-                  r: 7,
-                  fill: "#3B82F6",
-                  stroke: "#fff",
-                  strokeWidth: 3,
-                }}
-              />
-            </LineChart>
-          </ResponsiveContainer>
+          <div className="w-full h-[120px] sm:h-[140px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={ventas}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                <XAxis dataKey="periodo" tick={{ fontSize: 12 }} />
+                <YAxis domain={[0, maxVentas]} tick={{ fontSize: 12 }} />
+                <Tooltip content={<CustomTooltip tipo="ventas" />} />
+                <Line
+                  type="monotone"
+                  dataKey="total"
+                  stroke="#3B82F6"
+                  strokeWidth={2.5}
+                  dot={{
+                    r: 5,
+                    fill: "#3B82F6",
+                    stroke: "#fff",
+                    strokeWidth: 2,
+                  }}
+                  activeDot={{
+                    r: 7,
+                    fill: "#3B82F6",
+                    stroke: "#fff",
+                    strokeWidth: 3,
+                  }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
         </section>
         {/* Órdenes */}
-        <section className="bg-white rounded-xl shadow p-6 mb-6">
-          <div className="flex justify-between items-center mb-2">
-            <h2 className="font-semibold text-base text-[#EF4444]">Órdenes</h2>
+        <section className="bg-white rounded-xl shadow p-3 sm:p-6 mb-4 sm:mb-6">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-2 gap-2">
+            <h2 className="font-semibold text-base sm:text-lg text-[#EF4444]">
+              Órdenes
+            </h2>
             <div className="flex gap-2">
               {filtros.map((f) => (
                 <button
@@ -127,32 +138,41 @@ export default function AnalyticsPage() {
               ))}
             </div>
           </div>
-          <ResponsiveContainer width="100%" height={140}>
-            <LineChart data={ordenes}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} />
-              <XAxis dataKey="periodo" tick={{ fontSize: 12 }} />
-              <YAxis domain={[0, maxOrdenes]} tick={{ fontSize: 12 }} />
-              <Tooltip content={<CustomTooltip tipo="ordenes" />} />
-              <Line
-                type="monotone"
-                dataKey="total"
-                stroke="#EF4444"
-                strokeWidth={2.5}
-                dot={{ r: 5, fill: "#EF4444", stroke: "#fff", strokeWidth: 2 }}
-                activeDot={{
-                  r: 7,
-                  fill: "#EF4444",
-                  stroke: "#fff",
-                  strokeWidth: 3,
-                }}
-              />
-            </LineChart>
-          </ResponsiveContainer>
+          <div className="w-full h-[120px] sm:h-[140px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={ordenes}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                <XAxis dataKey="periodo" tick={{ fontSize: 12 }} />
+                <YAxis domain={[0, maxOrdenes]} tick={{ fontSize: 12 }} />
+                <Tooltip content={<CustomTooltip tipo="ordenes" />} />
+                <Line
+                  type="monotone"
+                  dataKey="total"
+                  stroke="#EF4444"
+                  strokeWidth={2.5}
+                  dot={{
+                    r: 5,
+                    fill: "#EF4444",
+                    stroke: "#fff",
+                    strokeWidth: 2,
+                  }}
+                  activeDot={{
+                    r: 7,
+                    fill: "#EF4444",
+                    stroke: "#fff",
+                    strokeWidth: 3,
+                  }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
         </section>
         {/* Usuarios */}
-        <section className="bg-white rounded-xl shadow p-6 mb-6">
-          <div className="flex justify-between items-center mb-2">
-            <h2 className="font-semibold text-base text-[#8B5CF6]">Usuarios</h2>
+        <section className="bg-white rounded-xl shadow p-3 sm:p-6 mb-4 sm:mb-6">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-2 gap-2">
+            <h2 className="font-semibold text-base sm:text-lg text-[#8B5CF6]">
+              Usuarios
+            </h2>
             <div className="flex gap-2">
               {filtros.map((f) => (
                 <button
@@ -169,27 +189,34 @@ export default function AnalyticsPage() {
               ))}
             </div>
           </div>
-          <ResponsiveContainer width="100%" height={140}>
-            <LineChart data={usuarios}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} />
-              <XAxis dataKey="periodo" tick={{ fontSize: 12 }} />
-              <YAxis domain={[0, maxUsuarios]} tick={{ fontSize: 12 }} />
-              <Tooltip content={<CustomTooltip tipo="usuarios" />} />
-              <Line
-                type="monotone"
-                dataKey="total"
-                stroke="#8B5CF6"
-                strokeWidth={2.5}
-                dot={{ r: 5, fill: "#8B5CF6", stroke: "#fff", strokeWidth: 2 }}
-                activeDot={{
-                  r: 7,
-                  fill: "#8B5CF6",
-                  stroke: "#fff",
-                  strokeWidth: 3,
-                }}
-              />
-            </LineChart>
-          </ResponsiveContainer>
+          <div className="w-full h-[120px] sm:h-[140px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={usuarios}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                <XAxis dataKey="periodo" tick={{ fontSize: 12 }} />
+                <YAxis domain={[0, maxUsuarios]} tick={{ fontSize: 12 }} />
+                <Tooltip content={<CustomTooltip tipo="usuarios" />} />
+                <Line
+                  type="monotone"
+                  dataKey="total"
+                  stroke="#8B5CF6"
+                  strokeWidth={2.5}
+                  dot={{
+                    r: 5,
+                    fill: "#8B5CF6",
+                    stroke: "#fff",
+                    strokeWidth: 2,
+                  }}
+                  activeDot={{
+                    r: 7,
+                    fill: "#8B5CF6",
+                    stroke: "#fff",
+                    strokeWidth: 3,
+                  }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
         </section>
       </main>
     </div>

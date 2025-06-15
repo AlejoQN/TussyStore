@@ -91,25 +91,29 @@ export default function PerfilDirecciones() {
     <div className="min-h-screen bg-white text-black flex flex-col">
       <Header />
       <main className="flex-1 max-w-6xl mx-auto w-full px-2 sm:px-4 py-8">
-        <h1 className="text-3xl font-bold mb-8 mt-4">Mi perfil</h1>
-        <div className="flex flex-col lg:flex-row gap-10">
+        <h1 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8 mt-2 sm:mt-4 text-center sm:text-left">
+          Mis Direcciones
+        </h1>
+        <div className="flex flex-col lg:flex-row gap-6 sm:gap-10">
           {/* Sidebar */}
-          <aside className="w-full max-w-xs lg:w-72 bg-white border rounded-xl shadow p-0 mb-8 lg:mb-0 self-start">
+          <aside className="w-full max-w-full sm:max-w-xs lg:w-72 bg-white border rounded-xl shadow p-0 mb-6 lg:mb-0 self-start">
             <div className="flex flex-col items-center gap-2 py-6 border-b">
               <img
                 src={user?.foto || "/img/perfil-demo.jpg"}
                 alt="Foto de perfil"
-                className="w-14 h-14 rounded-full object-cover border"
+                className="w-16 h-16 sm:w-14 sm:h-14 rounded-full object-cover border"
               />
-              <div className="font-semibold text-sm text-gray-700 mt-2">
+              <div className="font-semibold text-xs sm:text-sm text-gray-700 mt-2">
                 Hola <span className="text-lg">👋</span>
               </div>
-              <div className="font-bold">{user?.nombre || "Usuario"}</div>
+              <div className="font-bold text-base sm:text-lg">
+                {user?.nombre || "Usuario"}
+              </div>
             </div>
             <nav className="flex flex-col gap-0 mt-2">
               <Link
                 href="/perfil"
-                className="flex items-center gap-2 px-6 py-3 text-base text-left hover:bg-gray-100"
+                className="flex items-center gap-2 px-4 sm:px-6 py-3 text-base text-left hover:bg-gray-100"
               >
                 <span className="inline-block w-5">
                   {/* SVG usuario */}
@@ -130,7 +134,7 @@ export default function PerfilDirecciones() {
               </Link>
               <Link
                 href="/perfil/ordenes"
-                className="flex items-center gap-2 px-6 py-3 text-base text-left hover:bg-gray-100"
+                className="flex items-center gap-2 px-4 sm:px-6 py-3 text-base text-left hover:bg-gray-100"
               >
                 <span className="inline-block w-5">
                   {/* SVG caja */}
@@ -155,7 +159,7 @@ export default function PerfilDirecciones() {
               </Link>
               <Link
                 href="/perfil/favoritos"
-                className="flex items-center gap-2 px-6 py-3 text-base text-left hover:bg-gray-100"
+                className="flex items-center gap-2 px-4 sm:px-6 py-3 text-base text-left hover:bg-gray-100"
               >
                 <span className="inline-block w-5">
                   {/* SVG corazón */}
@@ -175,7 +179,7 @@ export default function PerfilDirecciones() {
               </Link>
               <Link
                 href="/perfil/direcciones"
-                className="flex items-center gap-2 px-6 py-3 text-base text-left bg-black text-white font-semibold"
+                className="flex items-center gap-2 px-4 sm:px-6 py-3 text-base text-left bg-black text-white font-semibold"
               >
                 <span className="inline-block w-5">
                   {/* SVG ubicación */}
@@ -197,7 +201,7 @@ export default function PerfilDirecciones() {
             </nav>
             <Link
               href="/perfil/eliminar"
-              className="text-xs text-red-500 hover:underline px-6 py-3 text-left flex items-center"
+              className="text-xs text-red-500 hover:underline px-4 sm:px-6 py-3 text-left flex items-center"
             >
               <span className="inline-block w-4 mr-2 align-middle">
                 <svg
@@ -279,7 +283,7 @@ export default function PerfilDirecciones() {
                       required
                     />
                   </div>
-                  <div className="flex gap-2 mt-4">
+                  <div className="flex flex-col sm:flex-row gap-2 mt-4">
                     <button
                       type="submit"
                       className="bg-black text-white px-4 py-2 rounded font-semibold hover:bg-pink-500"
@@ -325,7 +329,15 @@ export default function PerfilDirecciones() {
                           </span>
                         )}
                       </div>
-                      <div className="flex gap-2">
+                      <div className="flex flex-col sm:flex-row gap-2">
+                        {!dir.principal && (
+                          <button
+                            className="border px-3 py-1 rounded font-semibold hover:bg-gray-100 text-xs"
+                            onClick={() => handlePrincipal(dir.id)}
+                          >
+                            Hacer principal
+                          </button>
+                        )}
                         <button
                           className="border px-3 py-1 rounded font-semibold hover:bg-gray-100 text-xs"
                           onClick={() => handleEditar(dir)}

@@ -82,8 +82,11 @@ export default function ProductForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="max-w-4xl mx-auto py-8">
-      <h1 className="text-xl font-bold mb-4">
+    <form
+      onSubmit={handleSubmit}
+      className="max-w-4xl mx-auto py-6 px-2 sm:px-4"
+    >
+      <h1 className="text-xl sm:text-2xl font-bold mb-4">
         {mode === "edit" ? "Editar Producto" : "Agregar Producto"}
       </h1>
       {/* Breadcrumb */}
@@ -102,7 +105,7 @@ export default function ProductForm({
               placeholder="Nombre del Producto"
               value={form.nombre}
               onChange={handleChange}
-              className="w-full border rounded px-3 py-2 mb-3"
+              className="w-full border rounded px-3 py-2 mb-3 text-base sm:text-lg"
               required
             />
             <textarea
@@ -110,7 +113,7 @@ export default function ProductForm({
               placeholder="Descripción"
               value={form.descripcion}
               onChange={handleChange}
-              className="w-full border rounded px-3 py-2"
+              className="w-full border rounded px-3 py-2 text-base sm:text-lg"
               rows={3}
               required
             />
@@ -148,7 +151,7 @@ export default function ProductForm({
                   className="h-24 mx-auto object-contain"
                 />
               ) : (
-                <span className="text-gray-400">
+                <span className="text-gray-400 text-center text-sm">
                   Arrastra la imagen aquí o dale clic a subir imagen
                 </span>
               )}
@@ -177,7 +180,7 @@ export default function ProductForm({
               placeholder="Precio Base"
               value={form.precio}
               onChange={handleChange}
-              className="w-full border rounded px-3 py-2 mb-3"
+              className="w-full border rounded px-3 py-2 mb-3 text-base sm:text-lg"
               required
             />
             <input
@@ -186,26 +189,26 @@ export default function ProductForm({
               placeholder="Porcentaje del descuento (%)"
               value={form.descuento}
               onChange={handleChange}
-              className="w-full border rounded px-3 py-2"
+              className="w-full border rounded px-3 py-2 text-base sm:text-lg"
             />
           </section>
           {/* Inventario */}
           <section className="bg-white rounded-xl border p-4">
             <div className="font-semibold mb-2">Inventario</div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
               <input
                 name="referencia"
                 placeholder="Referencia"
                 value={form.referencia}
                 onChange={handleChange}
-                className="border rounded px-3 py-2"
+                className="border rounded px-3 py-2 text-base sm:text-lg"
               />
               <input
                 name="codigo_barras"
                 placeholder="Código de Barras"
                 value={form.codigo_barras}
                 onChange={handleChange}
-                className="border rounded px-3 py-2"
+                className="border rounded px-3 py-2 text-base sm:text-lg"
               />
               <input
                 name="stock"
@@ -213,7 +216,7 @@ export default function ProductForm({
                 placeholder="Cantidad"
                 value={form.stock}
                 onChange={handleChange}
-                className="border rounded px-3 py-2"
+                className="border rounded px-3 py-2 text-base sm:text-lg"
               />
             </div>
           </section>
@@ -221,13 +224,13 @@ export default function ProductForm({
           <section className="bg-white rounded-xl border p-4">
             <div className="font-semibold mb-2">Variaciones</div>
             {form.variaciones.map((v: any, idx: number) => (
-              <div key={idx} className="flex gap-2 mb-2">
+              <div key={idx} className="flex flex-col sm:flex-row gap-2 mb-2">
                 <select
                   value={v.tipo}
                   onChange={(e) =>
                     handleVariationChange(idx, "tipo", e.target.value)
                   }
-                  className="border rounded px-3 py-2"
+                  className="border rounded px-3 py-2 text-base sm:text-lg"
                 >
                   <option value="">Tipo de Variación</option>
                   <option value="talla">Talla</option>
@@ -239,7 +242,7 @@ export default function ProductForm({
                     handleVariationChange(idx, "valor", e.target.value)
                   }
                   placeholder="Variación"
-                  className="border rounded px-3 py-2"
+                  className="border rounded px-3 py-2 text-base sm:text-lg"
                 />
                 <button
                   type="button"
@@ -252,7 +255,7 @@ export default function ProductForm({
             ))}
             <button
               type="button"
-              className="border rounded px-4 py-1 text-sm"
+              className="border rounded px-4 py-1 text-sm mt-2"
               onClick={handleAddVariation}
             >
               + Agregar Variaciones
@@ -267,7 +270,7 @@ export default function ProductForm({
               name="categoria"
               value={form.categoria}
               onChange={handleChange}
-              className="w-full border rounded px-3 py-2 mb-3"
+              className="w-full border rounded px-3 py-2 mb-3 text-base sm:text-lg"
               required
             >
               <option value="">Seleccionar...</option>
@@ -284,7 +287,7 @@ export default function ProductForm({
               name="estado"
               value={form.estado}
               onChange={handleChange}
-              className="w-full border rounded px-3 py-2"
+              className="w-full border rounded px-3 py-2 text-base sm:text-lg"
             >
               <option value="draft">Draft</option>
               <option value="publicado">Publicado</option>
@@ -294,10 +297,10 @@ export default function ProductForm({
         </div>
       </div>
       {/* Botones */}
-      <div className="flex justify-end gap-4 mt-8">
+      <div className="flex flex-col sm:flex-row justify-end gap-4 mt-8">
         <button
           type="button"
-          className="border px-6 py-2 rounded"
+          className="border px-6 py-2 rounded mb-2 sm:mb-0"
           onClick={() => window.history.back()}
         >
           Cancelar

@@ -5,7 +5,6 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { useAuth } from "@/context/AuthContext";
 import Link from "next/link";
-import PerfilSidebar from "@/components/perfil/PerfilSidebar";
 import { useRouter } from "next/navigation";
 import { useUserCart } from "@/hooks/userCart";
 
@@ -95,26 +94,30 @@ export default function PerfilOrdenes() {
   return (
     <div className="min-h-screen bg-white text-black flex flex-col">
       <Header />
-      <main className="flex-1 max-w-6xl mx-auto w-full px-2 sm:px-4 py-8">
-        <h1 className="text-3xl font-bold mb-8 mt-4">Mi perfil</h1>
-        <div className="flex flex-col lg:flex-row gap-10">
+      <main className="flex-1 max-w-6xl mx-auto w-full px-2 sm:px-4 py-6 sm:py-8">
+        <h1 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8 mt-2 sm:mt-4 text-center sm:text-left">
+          Mis Ordenes
+        </h1>
+        <div className="flex flex-col lg:flex-row gap-6 sm:gap-10">
           {/* Sidebar */}
-          <aside className="w-full max-w-xs lg:w-72 bg-white border rounded-xl shadow p-0 mb-8 lg:mb-0 self-start">
+          <aside className="w-full max-w-full sm:max-w-xs lg:w-72 bg-white border rounded-xl shadow p-0 mb-6 lg:mb-0 self-start">
             <div className="flex flex-col items-center gap-2 py-6 border-b">
               <img
                 src={user?.foto || "/img/perfil-demo.jpg"}
                 alt="Foto de perfil"
-                className="w-14 h-14 rounded-full object-cover border"
+                className="w-16 h-16 sm:w-14 sm:h-14 rounded-full object-cover border"
               />
-              <div className="font-semibold text-sm text-gray-700 mt-2">
+              <div className="font-semibold text-xs sm:text-sm text-gray-700 mt-2">
                 Hola <span className="text-lg">👋</span>
               </div>
-              <div className="font-bold">{user?.nombre || "Usuario"}</div>
+              <div className="font-bold text-base sm:text-lg">
+                {user?.nombre || "Usuario"}
+              </div>
             </div>
             <nav className="flex flex-col gap-0 mt-2">
               <Link
                 href="/perfil"
-                className="flex items-center gap-2 px-6 py-3 text-base text-left hover:bg-gray-100"
+                className="flex items-center gap-2 px-4 sm:px-6 py-3 text-base text-left hover:bg-gray-100"
               >
                 <span className="inline-block w-5">
                   {/* SVG usuario */}
@@ -135,7 +138,7 @@ export default function PerfilOrdenes() {
               </Link>
               <Link
                 href="/perfil/ordenes"
-                className="flex items-center gap-2 px-6 py-3 text-base text-left bg-black text-white font-semibold"
+                className="flex items-center gap-2 px-4 sm:px-6 py-3 text-base text-left bg-black text-white font-semibold"
               >
                 <span className="inline-block w-5">
                   {/* SVG caja */}
@@ -160,7 +163,7 @@ export default function PerfilOrdenes() {
               </Link>
               <Link
                 href="/perfil/favoritos"
-                className="flex items-center gap-2 px-6 py-3 text-base text-left hover:bg-gray-100"
+                className="flex items-center gap-2 px-4 sm:px-6 py-3 text-base text-left hover:bg-gray-100"
               >
                 <span className="inline-block w-5">
                   {/* SVG corazón */}
@@ -180,7 +183,7 @@ export default function PerfilOrdenes() {
               </Link>
               <Link
                 href="/perfil/direcciones"
-                className="flex items-center gap-2 px-6 py-3 text-base text-left hover:bg-gray-100"
+                className="flex items-center gap-2 px-4 sm:px-6 py-3 text-base text-left hover:bg-gray-100"
               >
                 <span className="inline-block w-5">
                   {/* SVG ubicación */}
@@ -200,7 +203,7 @@ export default function PerfilOrdenes() {
                 Mis Direcciones
               </Link>
             </nav>
-            <button className="text-xs text-red-500 hover:underline px-6 py-3 text-left">
+            <button className="text-xs text-red-500 hover:underline px-4 sm:px-6 py-3 text-left flex items-center">
               {/* SVG eliminar */}
               <span className="inline-block w-4 mr-2 align-middle">
                 <svg
@@ -225,7 +228,7 @@ export default function PerfilOrdenes() {
                 <input
                   type="text"
                   placeholder="Buscar"
-                  className="border rounded px-3 py-2 w-64"
+                  className="border rounded px-3 py-2 w-full sm:w-64"
                   // Implementa el estado y lógica de búsqueda si lo necesitas
                   readOnly
                 />
@@ -257,7 +260,7 @@ export default function PerfilOrdenes() {
                       className="w-16 h-16 object-contain rounded"
                     />
                     {/* Info */}
-                    <div className="flex-1 flex flex-col gap-1">
+                    <div className="flex-1 flex flex-col gap-1 w-full">
                       <div className="font-semibold">Orden #{orden.id}</div>
                       <div className="text-xs text-gray-500">
                         Cantidad: {orden.producto.cantidad}
@@ -289,7 +292,7 @@ export default function PerfilOrdenes() {
                       </div>
                     </div>
                     {/* Precio total y acciones */}
-                    <div className="flex flex-col items-end gap-2 min-w-[120px]">
+                    <div className="flex flex-col items-end gap-2 min-w-[120px] w-full md:w-auto">
                       <div className="font-bold text-right">
                         {orden.total
                           ? `$${orden.total.toLocaleString("es-CO")}`
@@ -304,9 +307,9 @@ export default function PerfilOrdenes() {
                               "es-CO"
                             )}`}
                       </div>
-                      <div className="flex gap-2">
+                      <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
                         <button
-                          className="border px-3 py-1 rounded text-sm hover:bg-gray-100"
+                          className="border px-3 py-1 rounded text-sm hover:bg-gray-100 w-full md:w-auto"
                           onClick={() =>
                             router.push(`/perfil/ordenes/${orden.id}`)
                           }
@@ -316,7 +319,7 @@ export default function PerfilOrdenes() {
                         </button>
                         {orden.estado === "En Proceso" && (
                           <button
-                            className="bg-red-200 text-red-700 px-3 py-1 rounded text-sm font-semibold hover:bg-red-300"
+                            className="bg-red-200 text-red-700 px-3 py-1 rounded text-sm font-semibold hover:bg-red-300 w-full md:w-auto"
                             onClick={() => handleCancel(orden.id)}
                             type="button"
                           >
@@ -324,7 +327,7 @@ export default function PerfilOrdenes() {
                           </button>
                         )}
                         <button
-                          className="bg-primary text-white px-3 py-1 rounded text-sm font-semibold hover:bg-pink-600"
+                          className="bg-primary text-white px-3 py-1 rounded text-sm font-semibold hover:bg-pink-600 w-full md:w-auto"
                           onClick={() => handleVolverAComprar(orden)}
                           type="button"
                         >

@@ -115,12 +115,12 @@ export default function AdminOrdersPage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-[#F6F7FB] text-black">
-      <main className="flex-1 max-w-6xl mx-auto px-4 py-8 w-full">
+      <main className="flex-1 max-w-6xl mx-auto px-2 sm:px-4 py-4 sm:py-8 w-full">
         <h1 className="text-xl font-bold mb-6 text-[#3B82F6]">PEDIDOS</h1>
-        <div className="bg-white rounded-xl shadow border p-6 mb-8">
-          <div className="flex justify-end mb-2">
+        <div className="bg-white rounded-xl shadow border p-2 sm:p-6 mb-8">
+          <div className="flex flex-col sm:flex-row justify-end items-start sm:items-center mb-2 gap-2">
             <select
-              className="border rounded px-3 py-1"
+              className="border rounded px-3 py-1 w-full sm:w-auto"
               value={filtro}
               onChange={(e) => setFiltro(e.target.value)}
             >
@@ -131,7 +131,7 @@ export default function AdminOrdersPage() {
             </select>
           </div>
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+            <table className="w-full text-xs sm:text-sm min-w-[800px]">
               <thead>
                 <tr className="text-[#3B82F6] font-semibold text-base border-b">
                   <th className="py-2 text-left">Id</th>
@@ -162,22 +162,22 @@ export default function AdminOrdersPage() {
                   ordenesFiltradas.map((o, idx) => (
                     <tr
                       key={`${o.id}-${idx}`}
-                      className="border-b hover:bg-gray-50"
+                      className="border-b hover:bg-gray-50 align-middle"
                     >
                       <td className="py-2">{o.id}</td>
                       <td>
-                        <span className="text-[#3B82F6] font-semibold cursor-pointer hover:underline">
+                        <span className="text-[#3B82F6] font-semibold cursor-pointer hover:underline break-all">
                           {o.usuario_nombre}
                         </span>
                       </td>
-                      <td>{o.producto_nombre}</td>
-                      <td>{o.categoria_nombre}</td>
+                      <td className="break-all">{o.producto_nombre}</td>
+                      <td className="break-all">{o.categoria_nombre}</td>
                       <td>%19</td>
                       <td>${o.costo?.toLocaleString("es-CO")}</td>
                       <td>{o.cantidad}</td>
                       <td>{o.fecha?.slice(0, 10) || "-"}</td>
                       <td>
-                        <div className="flex items-center gap-2">
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
                           <span
                             className={`px-3 py-1 rounded-full text-xs font-bold ${
                               ESTADO_COLOR[o.estado] || "bg-gray-300 text-black"
@@ -209,7 +209,7 @@ export default function AdminOrdersPage() {
           </div>
         </div>
         {/* Stats */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
           <StatBox
             title="ÓRDENES COMPLETADAS"
             value={stats.completadas}
@@ -247,9 +247,15 @@ function StatBox({
     red: "bg-red-100 text-red-700",
   };
   return (
-    <div className="bg-white rounded-xl shadow p-6 flex flex-col gap-2 items-center">
-      <div className="text-xs text-gray-500 font-semibold mb-1">{title}</div>
-      <div className="text-3xl font-bold text-gray-800">{value}</div>
+    <div
+      className={`bg-white rounded-xl shadow p-4 sm:p-6 flex flex-col gap-2 items-center w-full`}
+    >
+      <div className="text-xs text-gray-500 font-semibold mb-1 text-center">
+        {title}
+      </div>
+      <div className="text-2xl sm:text-3xl font-bold text-gray-800">
+        {value}
+      </div>
     </div>
   );
 }

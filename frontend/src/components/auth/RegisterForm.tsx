@@ -91,43 +91,43 @@ export default function RegisterForm() {
   };
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center bg-white">
+    <div className="relative min-h-screen flex items-center justify-center bg-white px-2 sm:px-0">
       {/* Logo esquina superior izquierda */}
       <Link
         href="/"
-        className="absolute top-8 left-8 w-24"
-        style={{ width: 90 }}
+        className="absolute top-4 left-4 sm:top-8 sm:left-8 w-20 sm:w-24"
+        style={{ width: 70 }}
       >
         <img
           src="/img/Logo-2.png"
           alt="Logo"
-          className="w-24"
-          style={{ width: 90 }}
+          className="w-20 sm:w-24"
+          style={{ width: 70 }}
         />
       </Link>
       {/* Botón cerrar */}
       <button
         aria-label="Cerrar"
-        className="absolute top-8 right-8 text-black text-4xl font-light hover:opacity-70"
+        className="absolute top-4 right-4 sm:top-8 sm:right-8 text-black text-3xl sm:text-4xl font-light hover:opacity-70 z-50"
         onClick={() => window.history.back()}
         type="button"
       >
         ×
       </button>
       <form
-        className="w-full max-w-xl mx-auto bg-white p-0 rounded-lg flex flex-col items-center"
+        className="w-full max-w-xl mx-auto bg-white p-4 sm:p-8 rounded-lg flex flex-col items-center"
         onSubmit={handleSubmit}
-        style={{ minWidth: 400, marginTop: -100 }}
+        style={{ minWidth: 0, marginTop: 0 }}
         encType="multipart/form-data"
       >
-        <h1 className="text-4xl font-bold mb-2 text-black text-center">
+        <h1 className="text-2xl sm:text-4xl font-bold mb-2 text-black text-center">
           Registro
         </h1>
         <p className="mb-6 text-center text-black">crea tu cuenta ya</p>
         {/* Nombres y Apellidos */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full mb-4">
           <input
-            className="border border-black rounded-xl p-3 text-lg placeholder-gray-400 text-black"
+            className="border border-black rounded-xl p-3 text-base sm:text-lg placeholder-gray-400 text-black"
             placeholder="Nombres"
             name="nombres"
             value={form.nombres}
@@ -135,7 +135,7 @@ export default function RegisterForm() {
             required
           />
           <input
-            className="border border-black rounded-xl p-3 text-lg placeholder-gray-400 text-black"
+            className="border border-black rounded-xl p-3 text-base sm:text-lg placeholder-gray-400 text-black"
             placeholder="Apellidos"
             name="apellidos"
             value={form.apellidos}
@@ -146,7 +146,7 @@ export default function RegisterForm() {
         {/* Email y Edad */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full mb-4">
           <input
-            className="border border-black rounded-xl p-3 text-lg placeholder-gray-400 text-black"
+            className="border border-black rounded-xl p-3 text-base sm:text-lg placeholder-gray-400 text-black"
             placeholder="Email"
             name="email"
             type="email"
@@ -155,7 +155,7 @@ export default function RegisterForm() {
             required
           />
           <select
-            className="border border-black rounded-xl p-3 text-lg bg-white text-gray-400"
+            className="border border-black rounded-xl p-3 text-base sm:text-lg bg-white text-gray-400"
             name="edad"
             value={form.edad}
             onChange={handleChange}
@@ -172,7 +172,7 @@ export default function RegisterForm() {
         {/* Teléfono y Foto de perfil */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full mb-4 items-end">
           <input
-            className="border border-black rounded-xl p-3 text-lg placeholder-gray-400 text-black"
+            className="border border-black rounded-xl p-3 text-base sm:text-lg placeholder-gray-400 text-black"
             placeholder="Teléfono"
             name="telefono"
             type="tel"
@@ -200,7 +200,7 @@ export default function RegisterForm() {
         {/* Dirección (una sola columna, ancho completo) */}
         <div className="w-full mb-4">
           <input
-            className="border border-black rounded-xl p-3 text-lg placeholder-gray-400 text-black w-full"
+            className="border border-black rounded-xl p-3 text-base sm:text-lg placeholder-gray-400 text-black w-full"
             placeholder="Dirección"
             name="direccion"
             type="text"
@@ -212,7 +212,7 @@ export default function RegisterForm() {
         {/* Contraseña y Confirmar contraseña */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full mb-4">
           <input
-            className="border border-black rounded-xl p-3 text-lg placeholder-gray-400 text-black"
+            className="border border-black rounded-xl p-3 text-base sm:text-lg placeholder-gray-400 text-black"
             placeholder="Contraseña"
             name="password"
             type="password"
@@ -221,7 +221,7 @@ export default function RegisterForm() {
             required
           />
           <input
-            className="border border-black rounded-xl p-3 text-lg placeholder-gray-400 text-black"
+            className="border border-black rounded-xl p-3 text-base sm:text-lg placeholder-gray-400 text-black"
             placeholder="Confirmar contraseña"
             name="confirmPassword"
             type="password"
@@ -235,7 +235,7 @@ export default function RegisterForm() {
           name="rol"
           value={form.rol}
           onChange={handleChange}
-          className="w-full border border-black rounded-xl p-3 text-lg mb-4 bg-white text-gray-400"
+          className="w-full border border-black rounded-xl p-3 text-base sm:text-lg mb-4 bg-white text-gray-400"
         >
           <option value="cliente">Cliente</option>
           <option value="admin">Admin</option>
@@ -295,7 +295,7 @@ export default function RegisterForm() {
         </div>
       </form>
       {showTerms && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 px-2">
           <div className="bg-white rounded-lg shadow-lg max-w-lg w-full p-6 relative">
             <button
               className="absolute top-2 right-4 text-2xl font-bold text-gray-500 hover:text-black"

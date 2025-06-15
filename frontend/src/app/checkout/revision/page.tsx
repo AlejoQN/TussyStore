@@ -110,7 +110,7 @@ export default function RevisionPedido() {
           <h1 className="text-2xl font-bold mb-6 mt-2">Revisión del pedido</h1>
           {/* Tabs de pasos */}
           <div className="flex gap-0 mb-6 border-b border-gray-200 flex-wrap">
-            <div className="flex-1 text-center py-2 border-b-2 border-gray-200 text-gray-400 bg-gray-50 min-w-[120px]">
+            <div className="flex-1 text-center py-2 border-b-2 border-gray-200 text-gray-400 bg-gray-50 min-w-[120px] text-xs sm:text-base">
               <span className="inline-flex items-center gap-2">
                 <span className="inline-block w-5 h-5 rounded-full bg-gray-300 text-gray-600 text-xs flex items-center justify-center font-bold">
                   1
@@ -118,7 +118,7 @@ export default function RevisionPedido() {
                 Dirección
               </span>
             </div>
-            <div className="flex-1 text-center py-2 border-b-2 border-gray-200 text-gray-400 bg-gray-50 min-w-[120px]">
+            <div className="flex-1 text-center py-2 border-b-2 border-gray-200 text-gray-400 bg-gray-50 min-w-[120px] text-xs sm:text-base">
               <span className="inline-flex items-center gap-2">
                 <span className="inline-block w-5 h-5 rounded-full bg-gray-300 text-gray-600 text-xs flex items-center justify-center font-bold">
                   2
@@ -126,7 +126,7 @@ export default function RevisionPedido() {
                 Método de pago
               </span>
             </div>
-            <div className="flex-1 text-center py-2 border-b-2 border-primary font-semibold text-primary bg-white min-w-[120px]">
+            <div className="flex-1 text-center py-2 border-b-2 border-primary font-semibold text-primary bg-white min-w-[120px] text-xs sm:text-base">
               <span className="inline-flex items-center gap-2">
                 <span className="inline-block w-5 h-5 rounded-full bg-primary text-white text-xs flex items-center justify-center font-bold">
                   3
@@ -136,7 +136,7 @@ export default function RevisionPedido() {
             </div>
           </div>
           {/* Llegada estimada */}
-          <div className="font-semibold mb-4">
+          <div className="font-semibold mb-4 text-sm sm:text-base">
             Llegada estimada: {fechaEstimada}
           </div>
           {/* Productos */}
@@ -148,20 +148,23 @@ export default function RevisionPedido() {
             ) : (
               <ul className="divide-y divide-gray-200">
                 {items.map((p, i) => (
-                  <li key={i} className="flex items-center gap-4 py-4">
+                  <li
+                    key={i}
+                    className="flex flex-col xs:flex-row items-start xs:items-center gap-4 py-4"
+                  >
                     <img
                       src={p.imagen}
                       alt={p.nombre}
                       className="h-16 w-16 object-contain rounded"
                     />
-                    <div className="flex-1">
-                      <div className="font-bold">{p.nombre}</div>
+                    <div className="flex-1 min-w-0">
+                      <div className="font-bold break-words">{p.nombre}</div>
                       <div className="text-xs text-gray-600">
                         {p.talla && <>Talla: {p.talla} </>}
                         {p.color && <>| Color: {p.color}</>}
                       </div>
                     </div>
-                    <div className="text-right">
+                    <div className="text-right min-w-[80px]">
                       <div className="font-semibold">
                         ${p.precio.toLocaleString("es-CO")}
                       </div>
@@ -178,7 +181,7 @@ export default function RevisionPedido() {
             {direccion ? (
               <div>
                 <div className="font-bold">{direccion.nombre}</div>
-                <div className="text-sm text-gray-700">
+                <div className="text-sm text-gray-700 break-words">
                   {direccion.direccion}
                   {direccion.apartamento && `, ${direccion.apartamento}`}
                   <br />
@@ -202,7 +205,7 @@ export default function RevisionPedido() {
           {/* Método de pago */}
           <div className="border-t border-gray-200 pt-4 mb-4">
             <div className="font-semibold mb-1">Método de pago</div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-col xs:flex-row items-start xs:items-center gap-2">
               <span className="font-bold capitalize">{metodoPago}</span>
               <button
                 type="button"
@@ -226,7 +229,9 @@ export default function RevisionPedido() {
               <ul className="mb-3 divide-y divide-gray-100">
                 {items.map((item) => (
                   <li key={item.id} className="py-2 flex flex-col">
-                    <span className="font-medium">{item.nombre}</span>
+                    <span className="font-medium break-words">
+                      {item.nombre}
+                    </span>
                     <span className="text-xs text-gray-500">
                       {item.talla && <>Talla: {item.talla} </>}
                       {item.color && <>| Color: {item.color} </>}x
@@ -239,7 +244,7 @@ export default function RevisionPedido() {
                 ))}
               </ul>
             )}
-            <div className="flex justify-between mb-2">
+            <div className="flex justify-between mb-2 text-sm">
               <span>Subtotal</span>
               <span>
                 {typeof subtotal === "number"
@@ -247,7 +252,7 @@ export default function RevisionPedido() {
                   : "$0"}
               </span>
             </div>
-            <div className="flex justify-between mb-2">
+            <div className="flex justify-between mb-2 text-sm">
               <span>Envío</span>
               <span>
                 {typeof envio === "number"

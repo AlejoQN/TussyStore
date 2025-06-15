@@ -105,7 +105,7 @@ export default function PerfilFavoritos() {
       {/* Pop-up de confirmación */}
       {popup.open && (
         <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-8 shadow-lg text-center max-w-xs w-full">
+          <div className="bg-white rounded-lg p-6 sm:p-8 shadow-lg text-center max-w-xs w-full">
             <div className="text-lg font-bold mb-4">Eliminar producto</div>
             <div className="mb-6 text-gray-700">
               ¿Estás seguro de eliminar este producto de tus favoritos?
@@ -126,25 +126,29 @@ export default function PerfilFavoritos() {
         </div>
       )}
       <main className="flex-1 max-w-6xl mx-auto w-full px-2 sm:px-4 py-8">
-        <h1 className="text-3xl font-bold mb-8 mt-4">Mis Favoritos</h1>
-        <div className="flex flex-col lg:flex-row gap-10">
+        <h1 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8 mt-2 sm:mt-4 text-center sm:text-left">
+          Mis Favoritos
+        </h1>
+        <div className="flex flex-col lg:flex-row gap-6 sm:gap-10">
           {/* Sidebar */}
-          <aside className="w-full max-w-xs lg:w-72 bg-white border rounded-xl shadow p-0 mb-8 lg:mb-0 self-start">
+          <aside className="w-full max-w-full sm:max-w-xs lg:w-72 bg-white border rounded-xl shadow p-0 mb-6 lg:mb-0 self-start">
             <div className="flex flex-col items-center gap-2 py-6 border-b">
               <img
                 src={user?.foto || "/img/perfil-demo.jpg"}
                 alt="Foto de perfil"
-                className="w-14 h-14 rounded-full object-cover border"
+                className="w-16 h-16 sm:w-14 sm:h-14 rounded-full object-cover border"
               />
-              <div className="font-semibold text-sm text-gray-700 mt-2">
+              <div className="font-semibold text-xs sm:text-sm text-gray-700 mt-2">
                 Hola <span className="text-lg">👋</span>
               </div>
-              <div className="font-bold">{user?.nombre || "Usuario"}</div>
+              <div className="font-bold text-base sm:text-lg">
+                {user?.nombre || "Usuario"}
+              </div>
             </div>
             <nav className="flex flex-col gap-0 mt-2">
               <Link
                 href="/perfil"
-                className="flex items-center gap-2 px-6 py-3 text-base text-left hover:bg-gray-100"
+                className="flex items-center gap-2 px-4 sm:px-6 py-3 text-base text-left hover:bg-gray-100"
               >
                 <span className="inline-block w-5">
                   {/* SVG usuario */}
@@ -165,7 +169,7 @@ export default function PerfilFavoritos() {
               </Link>
               <Link
                 href="/perfil/ordenes"
-                className="flex items-center gap-2 px-6 py-3 text-base text-left hover:bg-gray-100"
+                className="flex items-center gap-2 px-4 sm:px-6 py-3 text-base text-left hover:bg-gray-100"
               >
                 <span className="inline-block w-5">
                   {/* SVG caja */}
@@ -190,7 +194,7 @@ export default function PerfilFavoritos() {
               </Link>
               <Link
                 href="/perfil/favoritos"
-                className="flex items-center gap-2 px-6 py-3 text-base text-left bg-black text-white font-semibold"
+                className="flex items-center gap-2 px-4 sm:px-6 py-3 text-base text-left bg-black text-white font-semibold"
               >
                 <span className="inline-block w-5">
                   {/* SVG corazón */}
@@ -210,7 +214,7 @@ export default function PerfilFavoritos() {
               </Link>
               <Link
                 href="/perfil/direcciones"
-                className="flex items-center gap-2 px-6 py-3 text-base text-left hover:bg-gray-100"
+                className="flex items-center gap-2 px-4 sm:px-6 py-3 text-base text-left hover:bg-gray-100"
               >
                 <span className="inline-block w-5">
                   {/* SVG ubicación */}
@@ -230,7 +234,7 @@ export default function PerfilFavoritos() {
                 Mis Direcciones
               </Link>
             </nav>
-            <button className="text-xs text-red-500 hover:underline px-6 py-3 text-left">
+            <button className="text-xs text-red-500 hover:underline px-4 sm:px-6 py-3 text-left flex items-center">
               {/* SVG eliminar */}
               <span className="inline-block w-4 mr-2 align-middle">
                 <svg
@@ -254,7 +258,7 @@ export default function PerfilFavoritos() {
               <input
                 type="text"
                 placeholder="Buscar"
-                className="border rounded px-3 py-2 w-64"
+                className="border rounded px-3 py-2 w-full sm:w-64"
                 value={busqueda}
                 onChange={(e) => setBusqueda(e.target.value)}
               />
@@ -308,7 +312,7 @@ export default function PerfilFavoritos() {
                           : "/img/no-image.png"
                       }
                       alt={fav.nombre}
-                      className="w-36 h-36 object-contain mb-4"
+                      className="w-32 h-32 sm:w-36 sm:h-36 object-contain mb-4"
                     />
                     {/* Botón agregar al carrito */}
                     {hovered === fav.id && (

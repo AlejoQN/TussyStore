@@ -34,11 +34,10 @@ export default function LoginPage() {
     setError(null);
     setSuccess(null);
     try {
-      await login(form.email, form.password); // Esto debe guardar token y user en contexto y localStorage
+      await login(form.email, form.password);
       setSuccess({ type: "login", msg: "¡Inicio de sesión exitoso!" });
       setTimeout(() => router.push("/"), 1200);
     } catch (err: any) {
-      // Si el backend responde con un mensaje específico, úsalo
       if (err.response?.data?.error === "Credenciales inválidas") {
         setError({
           type: "credentials",
@@ -67,33 +66,33 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center bg-white">
+    <div className="relative min-h-screen flex items-center justify-center bg-white px-2 sm:px-0">
       {/* Logo esquina superior izquierda */}
       <Link
         href="/"
-        className="absolute top-8 left-8 w-24"
+        className="absolute top-4 left-4 sm:top-8 sm:left-8 w-20 sm:w-24"
         style={{ width: 90 }}
       >
         <img
           src="/img/Logo-2.png"
           alt="Logo"
-          className="w-24"
+          className="w-20 sm:w-24"
           style={{ width: 90 }}
         />
       </Link>
       {/* Botón cerrar */}
       <button
         aria-label="Cerrar"
-        className="absolute top-8 right-8 text-black text-4xl font-light hover:opacity-70 z-50"
+        className="absolute top-4 right-4 sm:top-8 sm:right-8 text-black text-3xl sm:text-4xl font-light hover:opacity-70 z-50"
         onClick={() => (window.location.href = "/")}
         type="button"
       >
         ×
       </button>
       {/* Título tienda */}
-      <div className="absolute left-0 right-0 top-8 flex justify-center">
+      <div className="absolute left-0 right-0 top-4 sm:top-8 flex justify-center">
         <span
-          className="text-black text-5xl font-thin"
+          className="text-black text-3xl sm:text-5xl font-thin"
           style={{ fontFamily: "TussyFont, sans-serif" }}
         >
           Tussy Store
@@ -101,15 +100,15 @@ export default function LoginPage() {
       </div>
       <form
         onSubmit={handleSubmit}
-        className="bg-white p-8 rounded shadow max-w-md w-full"
+        className="bg-white p-4 sm:p-8 rounded shadow max-w-md w-full mt-24 sm:mt-0"
       >
         {/* Título */}
-        <h2 className="text-4xl font-bold text-black text-left w-full mb-6 mt-6">
+        <h2 className="text-2xl sm:text-4xl font-bold text-black text-left w-full mb-6 mt-6">
           Inicio de sesión
         </h2>
         {/* Email */}
         <input
-          className="w-full border border-black rounded-xl p-3 text-lg mb-4 placeholder-gray-400 text-black"
+          className="w-full border border-black rounded-xl p-3 text-base sm:text-lg mb-4 placeholder-gray-400 text-black"
           placeholder="Email"
           type="email"
           value={form.email}
@@ -121,7 +120,7 @@ export default function LoginPage() {
         {/* Contraseña + icono */}
         <div className="relative w-full mb-4">
           <input
-            className="w-full border border-black rounded-xl p-3 text-lg placeholder-gray-400 pr-12 text-black"
+            className="w-full border border-black rounded-xl p-3 text-base sm:text-lg placeholder-gray-400 pr-12 text-black"
             placeholder="Contraseña"
             type={show ? "text" : "password"}
             value={form.password}
@@ -167,7 +166,7 @@ export default function LoginPage() {
           </button>
         </div>
         {/* Checkbox y recuperar contraseña */}
-        <div className="flex w-full items-center justify-between mb-2">
+        <div className="flex w-full flex-col sm:flex-row items-center justify-between mb-2 gap-2 sm:gap-0">
           <label className="flex items-center text-black text-base">
             <input
               type="checkbox"
@@ -210,7 +209,6 @@ export default function LoginPage() {
             Registrarse
           </Link>
         </div>
-        {/* ...resto del formulario... */}
       </form>
     </div>
   );

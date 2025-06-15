@@ -63,18 +63,18 @@ export default function UsersPage() {
   );
 
   return (
-    <div className="p-4">
-      <div className="bg-white rounded-lg shadow border p-4">
-        <div className="flex justify-between items-center mb-2">
+    <div className="p-2 sm:p-4">
+      <div className="bg-white rounded-lg shadow border p-2 sm:p-4">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-2 gap-2">
           <input
             type="text"
             placeholder="🔍 Buscar"
-            className="border rounded px-3 py-1 text-sm w-1/3"
+            className="border rounded px-3 py-1 text-sm w-full sm:w-1/3"
             value={busqueda}
             onChange={(e) => setBusqueda(e.target.value)}
           />
           <button
-            className="border px-3 py-1 rounded text-sm"
+            className="border px-3 py-1 rounded text-sm w-full sm:w-auto"
             onClick={() => setShowPopup(true)}
             disabled={seleccionados.length === 0}
           >
@@ -82,7 +82,7 @@ export default function UsersPage() {
           </button>
         </div>
         <div className="overflow-x-auto">
-          <table className="min-w-full text-sm border">
+          <table className="min-w-full text-xs sm:text-sm border">
             <thead>
               <tr className="bg-gray-100">
                 <th className="p-2">
@@ -95,11 +95,11 @@ export default function UsersPage() {
                     onChange={handleSelectAll}
                   />
                 </th>
-                <th className="p-2 text-left">Nombre</th>
-                <th className="p-2 text-left">Correo Electronico</th>
-                <th className="p-2 text-left">Número de teléfono</th>
-                <th className="p-2 text-left">Rol</th>
-                <th className="p-2 text-left">Dirección</th>
+                <th className="p-0 text-left">Nombre</th>
+                <th className="p-0 text-left">Correo Electronico</th>
+                <th className="p-0 text-left">Número de teléfono</th>
+                <th className="p-0 text-left">Rol</th>
+                <th className="p-0 text-left">Dirección</th>
               </tr>
             </thead>
             <tbody>
@@ -124,9 +124,9 @@ export default function UsersPage() {
                       alt={u.nombre}
                       className="w-7 h-7 rounded-full object-cover border"
                     />
-                    <span>{u.nombre}</span>
+                    <span className="break-all">{u.nombre}</span>
                   </td>
-                  <td className="p-2">
+                  <td className="p-2 break-all">
                     <a
                       href={`mailto:${u.email}`}
                       className="text-blue-600 underline"
@@ -136,7 +136,7 @@ export default function UsersPage() {
                   </td>
                   <td className="p-2">{u.telefono}</td>
                   <td className="p-2">{u.rol}</td>
-                  <td className="p-2">{u.direccion}</td>
+                  <td className="p-2 break-all">{u.direccion}</td>
                 </tr>
               ))}
               {usuariosFiltrados.length === 0 && (
@@ -153,8 +153,8 @@ export default function UsersPage() {
 
       {/* Pop-up de confirmación */}
       {showPopup && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-8 shadow-lg text-center max-w-xs w-full">
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 px-2">
+          <div className="bg-white rounded-lg p-6 sm:p-8 shadow-lg text-center max-w-xs w-full">
             <div className="flex flex-col items-center mb-4">
               <div className="bg-gray-100 rounded-full p-4 mb-2">
                 <svg
@@ -177,7 +177,7 @@ export default function UsersPage() {
                 ¿Deseas borrar los usuarios? Esta acción será irreversible.
               </div>
             </div>
-            <div className="flex justify-center gap-4">
+            <div className="flex flex-col sm:flex-row justify-center gap-4">
               <button
                 className="border px-4 py-2 rounded"
                 onClick={() => setShowPopup(false)}
