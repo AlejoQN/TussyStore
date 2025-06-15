@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { useUserCart } from "@/hooks/userCart";
 import { useFavoritos } from "@/hooks/useFavoritos";
-import ProductCard from "@/components/products/productCard";
+import ProductCard from "@/components/products/ProductCard";
 
 export default function Home() {
   const router = useRouter();

@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useUserCart } from "@/hooks/userCart";
 import { useFavoritos } from "@/hooks/useFavoritos";
-import ProductCard from "@/components/products/productCard";
+import ProductCard from "@/components/products/ProductCard";
 import Header from "@/components/common/Header";
 import Footer from "@/components/common/Footer";
 import axios from "axios";
