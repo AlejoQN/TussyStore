@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext, useState } from "react";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth as useAuthOriginal } from "@/context/AuthContext";
 
 const AuthContext = createContext<any>(null);
 
@@ -20,16 +20,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 }
 
 // Hook para acceder fácilmente a la autenticación en cualquier componente
-export function useAuth() {
+export function useLocalAuth() {
   const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error("useAuth debe usarse dentro de AuthProvider");
+  if (!ctx) throw new Error("useLocalAuth debe usarse dentro de AuthProvider");
   return ctx;
 }
 
 export function useUserCart() {
-  const { user } = useAuth();
+  const { user } = useLocalAuth();
   const cartKey = user ? `tussy_cart_${user.id}` : "tussy_cart";
 
   // Usa cartKey en lugar de "tussy_cart" para guardar y leer el carrito
   // ...resto del hook...
 }
+
+export { useAuthOriginal as useAuth };
