@@ -92,7 +92,7 @@ export default function PerfilPage() {
     e.preventDefault();
     setLoading(true);
     try {
-      await axios.put(
+      const { data } = await axios.put(
         "/api/usuario/perfil",
         {
           nombre: form.nombres,
@@ -107,15 +107,21 @@ export default function PerfilPage() {
           },
         }
       );
+      // Usa SIEMPRE los datos del backend para actualizar el contexto
       setUser &&
         setUser({
-          id: form.id,
-          nombre: form.nombres,
-          email: form.correo,
-          telefono: form.telefono,
-          direccion: form.direccion,
-          foto: form.foto,
-          rol: form.rol, // <-- importante para el dashboard
+          id: data.id,
+          nombre: data.nombre,
+          email: data.email,
+          telefono: data.telefono,
+          direccion: data.direccion,
+          foto:
+            data.foto &&
+            !data.foto.startsWith("http") &&
+            !data.foto.startsWith("/uploads/")
+              ? `/uploads/${data.foto.replace(/^\/?uploads\//, "")}`
+              : data.foto || "",
+          rol: data.rol,
         });
 
       setMensaje("Datos guardados correctamente");
@@ -172,15 +178,25 @@ export default function PerfilPage() {
         ...prev,
         foto: fotoUrl,
       }));
+      // Vuelve a pedir los datos completos al backend para actualizar el contexto
+      const perfilRes = await axios.get("/api/usuario/perfil", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const perfil = perfilRes.data;
       setUser &&
         setUser({
-          id: form.id,
-          nombre: form.nombres,
-          email: form.correo,
-          telefono: form.telefono,
-          direccion: form.direccion,
-          foto: fotoUrl,
-          rol: form.rol, // <-- importante para el dashboard
+          id: perfil.id,
+          nombre: perfil.nombre,
+          email: perfil.email,
+          telefono: perfil.telefono,
+          direccion: perfil.direccion,
+          foto:
+            perfil.foto &&
+            !perfil.foto.startsWith("http") &&
+            !perfil.foto.startsWith("/uploads/")
+              ? `/uploads/${perfil.foto.replace(/^\/?uploads\//, "")}`
+              : perfil.foto || "",
+          rol: perfil.rol,
         });
       setMensaje("Foto actualizada correctamente");
       setTimeout(() => setMensaje(""), 2000);
