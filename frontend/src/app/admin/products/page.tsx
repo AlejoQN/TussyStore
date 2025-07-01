@@ -12,7 +12,7 @@ interface Producto {
   fecha?: string;
   categoria: string | number;
   genero?: string;
-  precio: number; // <-- ESTA LÍNEA ES OBLIGATORIA
+  precio: number;
   descuento?: number;
 }
 

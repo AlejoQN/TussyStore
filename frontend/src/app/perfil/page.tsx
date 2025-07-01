@@ -61,14 +61,14 @@ export default function PerfilPage() {
           foto,
         });
         setUser &&
-          setUser((prev: any) => ({
-            ...prev,
-            nombre: data.nombre || "",
-            email: data.email || "",
-            telefono: data.telefono || "",
-            direccion: data.direccion || "",
-            foto,
-          }));
+          setUser({
+            nombre: form.nombres,
+            telefono: form.telefono,
+            direccion: form.direccion,
+            foto: form.foto,
+            email: form.correo,
+            id: 0
+          });
         setMensaje("");
       } catch (err: any) {
         setMensaje(
@@ -107,14 +107,15 @@ export default function PerfilPage() {
         }
       );
       setUser &&
-        setUser((prev: any) => ({
-          ...prev,
+        setUser({
           nombre: form.nombres,
           telefono: form.telefono,
           direccion: form.direccion,
           foto: form.foto,
           email: form.correo,
-        }));
+          id: 0
+        });
+        
       setMensaje("Datos guardados correctamente");
       setTimeout(() => setMensaje(""), 2000);
     } catch {
@@ -169,7 +170,15 @@ export default function PerfilPage() {
         ...prev,
         foto: fotoUrl,
       }));
-      setUser && setUser((prev: any) => ({ ...prev, foto: fotoUrl }));
+      setUser &&
+        setUser({
+          nombre: form.nombres,
+          telefono: form.telefono,
+          direccion: form.direccion,
+          foto: fotoUrl,
+          email: form.correo,
+          id: 0
+        });
       setMensaje("Foto actualizada correctamente");
       setTimeout(() => setMensaje(""), 2000);
     } catch {
