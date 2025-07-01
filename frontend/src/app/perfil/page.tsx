@@ -42,7 +42,7 @@ export default function PerfilPage() {
       setLoading(false);
       return;
     }
-    async function fetchUser() {
+    const fetchUser = async () => {
       try {
         const { data } = await axios.get("/api/usuario/perfil", {
           headers: { Authorization: `Bearer ${token}` },
@@ -62,12 +62,13 @@ export default function PerfilPage() {
         });
         setUser &&
           setUser({
-            nombre: form.nombres,
-            telefono: form.telefono,
-            direccion: form.direccion,
-            foto: form.foto,
-            email: form.correo,
-            id: 0
+            id: data.id,
+            nombre: data.nombre,
+            email: data.email,
+            telefono: data.telefono,
+            direccion: data.direccion,
+            foto: foto,
+            rol: data.rol,
           });
         setMensaje("");
       } catch (err: any) {
@@ -77,7 +78,7 @@ export default function PerfilPage() {
       } finally {
         setLoading(false);
       }
-    }
+    };
     fetchUser();
   }, [token, loading, setUser]);
 
@@ -108,14 +109,15 @@ export default function PerfilPage() {
       );
       setUser &&
         setUser({
+          id: form.id,
           nombre: form.nombres,
+          email: form.correo,
           telefono: form.telefono,
           direccion: form.direccion,
           foto: form.foto,
-          email: form.correo,
-          id: 0
+          rol: form.rol, // <-- importante para el dashboard
         });
-        
+
       setMensaje("Datos guardados correctamente");
       setTimeout(() => setMensaje(""), 2000);
     } catch {
@@ -172,12 +174,13 @@ export default function PerfilPage() {
       }));
       setUser &&
         setUser({
+          id: form.id,
           nombre: form.nombres,
+          email: form.correo,
           telefono: form.telefono,
           direccion: form.direccion,
           foto: fotoUrl,
-          email: form.correo,
-          id: 0
+          rol: form.rol, // <-- importante para el dashboard
         });
       setMensaje("Foto actualizada correctamente");
       setTimeout(() => setMensaje(""), 2000);

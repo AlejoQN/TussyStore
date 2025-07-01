@@ -1,8 +1,8 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
-import { useAuth } from "@/context/AuthContext";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/context/AuthContext";
 
 const categorias = ["Hombre", "Mujer", "Niños", "Accesorios"];
 
@@ -253,7 +253,7 @@ export default function Header() {
             >
               <img
                 src={
-                  user?.foto
+                  user.foto
                     ? user.foto.startsWith("http")
                       ? user.foto
                       : `/uploads/${user.foto.replace(/^\/?uploads\//, "")}`
@@ -261,14 +261,21 @@ export default function Header() {
                 }
                 alt="Perfil"
                 className="h-8 w-8 rounded-full object-cover border"
+                onError={(e) => {
+                  e.currentTarget.src = "/img/perfil-demo.jpg";
+                }}
               />
             </button>
             {userMenuOpen && (
-              <div className="absolute right-0 mt-2 w-48 bg-white border rounded shadow-lg z-50 py-2">
+              <div
+                ref={menuRef}
+                className="absolute right-0 mt-2 w-48 bg-white border rounded shadow-lg z-50 py-2"
+              >
                 <div className="px-4 py-2 font-semibold text-black border-b">
-                  {user.nombre}
+                  {user.nombre && user.nombre.trim() !== ""
+                    ? user.nombre
+                    : user.email || "Usuario"}
                 </div>
-                {/* SOLO PARA ADMIN */}
                 {user.rol === "admin" && (
                   <button
                     className="w-full text-left px-4 py-2 hover:bg-gray-100"

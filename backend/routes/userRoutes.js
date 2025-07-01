@@ -17,7 +17,7 @@ const upload = multer({ storage });
 router.get("/perfil", verifyToken, async (req, res) => {
   try {
     const [rows] = await pool.query(
-      "SELECT nombre, email, telefono, direccion, foto FROM usuarios WHERE id = ?",
+      "SELECT id, nombre, email, telefono, direccion, foto, rol FROM usuarios WHERE id = ?",
       [req.user.id]
     );
     if (rows.length === 0) {

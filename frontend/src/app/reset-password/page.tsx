@@ -41,7 +41,7 @@ export default function ResetPasswordPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-white">
+    <div className="min-h-screen flex items-center justify-center text-black bg-white">
       <form
         onSubmit={handleSubmit}
         className="bg-white p-8 rounded shadow max-w-md w-full"

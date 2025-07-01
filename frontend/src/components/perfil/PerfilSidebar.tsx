@@ -24,8 +24,11 @@ export default function PerfilSidebar({
             : "/img/perfil-demo.jpg"
         }
         alt="Foto de perfil"
-        className="w-14 h-14 rounded-full object-cover border"
+        className="w-16 h-16 sm:w-14 sm:h-14 rounded-full object-cover border"
       />
+      <div className="font-bold text-base sm:text-lg">
+        {user?.nombre || "Usuario"}
+      </div>
       <button
         className={`text-left w-full py-2 px-3 rounded ${
           vista === "datos" ? "bg-primary text-white" : "hover:bg-gray-100"
