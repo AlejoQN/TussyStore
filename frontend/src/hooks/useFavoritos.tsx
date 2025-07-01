@@ -6,22 +6,25 @@ export function useFavoritos() {
   const { token } = useAuth();
   const [favoritos, setFavoritos] = useState<number[]>([]);
 
+  // Mueve fetchFavoritos fuera del useEffect
+  const fetchFavoritos = async () => {
+    if (!token) {
+      setFavoritos([]);
+      return;
+    }
+    try {
+      const res = await axios.get("/api/favoritos", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setFavoritos(res.data.favoritos.map((f: { id: number }) => f.id));
+    } catch (err) {
+      setFavoritos([]);
+    }
+  };
+
   useEffect(() => {
-    const fetchFavoritos = async () => {
-      if (!token) {
-        setFavoritos([]);
-        return;
-      }
-      try {
-        const res = await axios.get("/api/favoritos", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setFavoritos(res.data.favoritos.map((f: { id: number }) => f.id));
-      } catch (err) {
-        setFavoritos([]);
-      }
-    };
     fetchFavoritos();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
   const addFavorito = async (productoId: number) => {
