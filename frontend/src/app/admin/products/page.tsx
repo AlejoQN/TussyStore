@@ -9,10 +9,11 @@ interface Producto {
   imagen: string;
   referencia: string;
   stock: number;
-  fecha: string;
+  fecha?: string;
   categoria: string | number;
   genero?: string;
-  precio: number;
+  precio: number; // <-- ESTA LÍNEA ES OBLIGATORIA
+  descuento?: number;
 }
 
 export default function AdminProductos() {
