@@ -12,6 +12,7 @@ interface Producto {
   fecha: string;
   categoria: string | number;
   genero?: string;
+  precio: number;
 }
 
 export default function AdminProductos() {
