@@ -33,55 +33,41 @@ export default function ResetPasswordPage() {
         const data = await res.json();
         throw new Error(data.error || "No se pudo actualizar la contraseña.");
       }
-      setSuccess("¡Contraseña actualizada! Ahora puedes iniciar sesión.");
+      setSuccess("Contraseña actualizada correctamente.");
       setTimeout(() => router.push("/login"), 2000);
     } catch (err: any) {
-      setError(err.message);
+      setError(err.message || "Error al actualizar la contraseña.");
     }
   };
 
-  if (!token) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="bg-white p-8 rounded shadow text-center text-red-600">
-          Token inválido o expirado.
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="flex min-h-screen items-center justify-center bg-white">
+    <div className="min-h-screen flex items-center justify-center bg-white">
       <form
-        className="max-w-md w-full bg-white p-8 rounded shadow"
         onSubmit={handleSubmit}
+        className="bg-white p-8 rounded shadow max-w-md w-full"
       >
-        <h2 className="text-2xl font-bold mb-4 text-black">
-          Restablecer contraseña
-        </h2>
+        <h1 className="text-2xl font-bold mb-4">Restablecer contraseña</h1>
         <input
-          className="w-full border border-black rounded-xl p-3 text-lg mb-4 placeholder-gray-400 text-black"
-          placeholder="Nueva contraseña"
           type="password"
+          placeholder="Nueva contraseña"
+          className="w-full border rounded px-3 py-2 mb-2"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          required
         />
         <input
-          className="w-full border border-black rounded-xl p-3 text-lg mb-4 placeholder-gray-400 text-black"
-          placeholder="Confirmar nueva contraseña"
           type="password"
+          placeholder="Confirmar contraseña"
+          className="w-full border rounded px-3 py-2 mb-4"
           value={confirm}
           onChange={(e) => setConfirm(e.target.value)}
-          required
         />
-        {error && <div className="text-red-600 mb-2">{error}</div>}
+        {error && <div className="text-red-500 mb-2">{error}</div>}
         {success && <div className="text-green-600 mb-2">{success}</div>}
         <button
           type="submit"
-          className="w-full py-3 bg-primary text-white rounded-xl font-medium text-lg"
+          className="bg-black text-white px-6 py-2 rounded font-semibold w-full"
         >
-          Guardar nueva contraseña
+          Cambiar contraseña
         </button>
       </form>
     </div>
