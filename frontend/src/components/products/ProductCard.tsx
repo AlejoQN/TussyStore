@@ -1,7 +1,7 @@
 "use client";
 import React, { useState } from "react";
 
-type ProductCardProps = {
+export type ProductCardProps = {
   nombre: string;
   imagen: string;
   precio: number;
@@ -10,7 +10,7 @@ type ProductCardProps = {
   masVendido?: boolean;
   descripcion: string;
   onAddToCart?: () => void;
-  onToggleFavorite?: () => void;
+  onToggleFavorite?: (e?: React.MouseEvent) => void; // <-- Cambia aquí
   favorito?: boolean;
 };
 
@@ -40,7 +40,7 @@ export default function ProductCard({
           className="absolute top-3 right-3 z-10"
           onClick={(e) => {
             e.stopPropagation();
-            onToggleFavorite && onToggleFavorite();
+            onToggleFavorite && onToggleFavorite(e);
           }}
           aria-label={favorito ? "Quitar de favoritos" : "Agregar a favoritos"}
           type="button"

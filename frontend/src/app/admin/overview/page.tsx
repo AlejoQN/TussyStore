@@ -7,21 +7,37 @@ import { useAuth } from "@/context/AuthContext"; // importa tu hook/contexto de 
 // Carga dinámica de la gráfica para evitar problemas de SSR
 const Chart = dynamic(() => import("react-apexcharts"), { ssr: false });
 
+type OrdenReciente = {
+  id: number;
+  codigo?: string;
+  usuario_nombre: string;
+  producto_nombre: string;
+  categoria_nombre: string;
+  costo: number;
+  estado: string;
+};
+
+type Stats = {
+  ganancias: number;
+  ordenes: number;
+  clientes: number;
+  balance: number;
+};
+
 export default function AdminOverview() {
   const { token } = useAuth();
-  const [stats, setStats] = useState({
+  const [stats, setStats] = useState<Stats>({
     ganancias: 0,
     ordenes: 0,
     clientes: 0,
     balance: 0,
-    // ventas: [], // ya no se usa
   });
-  const [ordenesData, setOrdenesData] = useState([]);
-  const [ordenesLabels, setOrdenesLabels] = useState([]);
+  const [ordenesData, setOrdenesData] = useState<number[]>([]);
+  const [ordenesLabels, setOrdenesLabels] = useState<string[]>([]);
   const [ordenesFiltro, setOrdenesFiltro] = useState<"dia" | "semana" | "mes">(
     "dia"
   );
-  const [ordenesRecientes, setOrdenesRecientes] = useState([]);
+  const [ordenesRecientes, setOrdenesRecientes] = useState<OrdenReciente[]>([]);
 
   useEffect(() => {
     if (!token) return;
@@ -30,8 +46,8 @@ export default function AdminOverview() {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((res) => {
-        setOrdenesData(res.data.map((v: any) => v.total));
-        setOrdenesLabels(res.data.map((v: any) => v.periodo));
+        setOrdenesData(res.data.map((v: { total: number }) => v.total));
+        setOrdenesLabels(res.data.map((v: { periodo: string }) => v.periodo));
       });
     axios
       .get("/api/admin/overview", {
@@ -167,7 +183,15 @@ export default function AdminOverview() {
 }
 
 // Componente para los stats
-function StatBox({ title, value, icon, color, negativo }: any) {
+type StatBoxProps = {
+  title: string;
+  value: number;
+  icon: string;
+  color: string;
+  negativo?: boolean;
+};
+
+function StatBox({ title, value, icon, color, negativo }: StatBoxProps) {
   return (
     <div className="bg-white rounded-xl shadow p-4 sm:p-6 flex flex-col gap-2 w-full">
       <div className="flex items-center gap-2">

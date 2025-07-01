@@ -7,6 +7,13 @@ const { verifyToken } = require("../controllers/authController");
 router.post("/add", verifyToken, async (req, res) => {
   const { producto_id, cantidad = 1, talla, color } = req.body;
   const usuario_id = req.user.id;
+  console.log("Agregar al carrito:", {
+    producto_id,
+    cantidad,
+    talla,
+    color,
+    usuario_id,
+  });
   try {
     // Validar stock
     const [prodRows] = await pool.query(
@@ -20,13 +27,13 @@ router.post("/add", verifyToken, async (req, res) => {
 
     // Obtener o crear carrito
     let [carritoRows] = await pool.query(
-      "SELECT id FROM carritos WHERE usuario_id = ?",
+      "SELECT id FROM carrito WHERE usuario_id = ?",
       [usuario_id]
     );
     let carrito_id;
     if (carritoRows.length === 0) {
       const [result] = await pool.query(
-        "INSERT INTO carritos (usuario_id) VALUES (?)",
+        "INSERT INTO carrito (usuario_id) VALUES (?)",
         [usuario_id]
       );
       carrito_id = result.insertId;
@@ -57,6 +64,7 @@ router.post("/add", verifyToken, async (req, res) => {
     }
     res.json({ message: "Producto añadido al carrito" });
   } catch (err) {
+    console.error("Error al añadir producto al carrito:", err);
     res.status(500).json({ error: "Error al añadir producto al carrito" });
   }
 });
@@ -99,7 +107,7 @@ router.get("/", verifyToken, async (req, res) => {
   const usuario_id = req.user.id;
   try {
     const [carritoRows] = await pool.query(
-      "SELECT id FROM carritos WHERE usuario_id = ?",
+      "SELECT id FROM carrito WHERE usuario_id = ?",
       [usuario_id]
     );
     if (carritoRows.length === 0) return res.json({ items: [], total: 0 });
@@ -148,6 +156,27 @@ router.post("/checkout", verifyToken, async (req, res) => {
     res.json({ message: "Checkout iniciado", items });
   } catch (err) {
     res.status(500).json({ error: "Error al iniciar checkout" });
+  }
+});
+
+// 5. Eliminar un item del carrito
+router.delete("/item/:id", verifyToken, async (req, res) => {
+  const itemId = req.params.id;
+  const usuario_id = req.user.id;
+  try {
+    // Verificar si el item existe
+    const [itemRows] = await pool.query(
+      "SELECT id FROM items_carrito WHERE id = ?",
+      [itemId]
+    );
+    if (itemRows.length === 0)
+      return res.status(404).json({ error: "Item no encontrado" });
+
+    // Eliminar el item
+    await pool.query("DELETE FROM items_carrito WHERE id = ?", [itemId]);
+    res.json({ message: "Item eliminado del carrito" });
+  } catch (err) {
+    res.status(500).json({ error: "Error al eliminar el item" });
   }
 });
 

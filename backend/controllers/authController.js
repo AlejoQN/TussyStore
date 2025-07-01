@@ -9,6 +9,7 @@ const path = require("path");
 exports.register = async (req, res) => {
   const { nombre, email, password, edad, rol, telefono, direccion } = req.body;
   const foto = req.file ? req.file.filename : null;
+  console.log("Campos recibidos en registro:", req.body); // <-- Agrega esto
   try {
     const [rows] = await pool.query("SELECT id FROM usuarios WHERE email = ?", [
       email,

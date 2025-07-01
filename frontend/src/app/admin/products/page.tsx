@@ -63,11 +63,13 @@ export default function AdminProductos() {
   };
 
   const handleConfirmarEliminar = async () => {
-    if (productoAEliminar) {
+    try {
       await axios.delete(`/api/productos/${productoAEliminar}`);
       setProductos((prev) => prev.filter((p) => p.id !== productoAEliminar));
       setShowPopup(false);
       setProductoAEliminar(null);
+    } catch (err) {
+      console.error("Error al eliminar el producto:", err);
     }
   };
 
@@ -145,9 +147,10 @@ export default function AdminProductos() {
             <table className="w-full text-xs sm:text-sm min-w-[600px]">
               <thead>
                 <tr className="text-gray-500 border-b text-left">
-                  <th className="py-2 px-2 w-8"></th> {/* Checkbox */}
-                  <th className="px-2">Nombre</th>
+                  <th></th>
+                  <th>Nombre</th>
                   <th className="px-2 text-center">Imagen</th>
+                  <th>Precio</th>
                   <th className="px-2">Referencia</th>
                   <th className="px-2">Stock</th>
                   <th className="px-2">Fecha</th>
@@ -178,6 +181,9 @@ export default function AdminProductos() {
                         alt={p.nombre}
                         className="w-10 h-10 object-contain rounded-full inline-block"
                       />
+                    </td>
+                    <td className="px-2 text-center">
+                      {typeof p.precio !== "undefined" ? `$${p.precio}` : "-"}
                     </td>
                     <td className="px-2">#{p.referencia || p.id}</td>
                     <td className="px-2">
@@ -271,7 +277,7 @@ export default function AdminProductos() {
                 ))}
                 {productosFiltrados.length === 0 && (
                   <tr>
-                    <td colSpan={7} className="text-center py-8 text-gray-500">
+                    <td colSpan={8} className="text-center py-8 text-gray-500">
                       No hay productos para mostrar.
                     </td>
                   </tr>

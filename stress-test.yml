@@ -1,0 +1,26 @@
+config:
+  target: "http://localhost:5000" 
+  phases:
+    - duration: 60   
+      arrivalRate: 20 
+  variables:
+    email: "stress{{ $randomInt }}@correo.com"
+scenarios:
+  - flow:
+      - get:
+          url: "/api/productos"
+      - post:
+          url: "/api/auth/register"
+          json:
+            nombre: "Test Stress"
+            email: "{{ email }}"
+            password: "123456"
+            edad: "22"
+            rol: "cliente"
+            telefono: "3000000000"
+            direccion: "Calle Stress"
+      - post:
+          url: "/api/auth/login"
+          json:
+            email: "{{ email }}"
+            password: "123456"

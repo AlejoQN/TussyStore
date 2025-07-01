@@ -64,6 +64,8 @@ export default function VistaProducto() {
         tallas:
           typeof p.tallas === "string"
             ? p.tallas.split(",").map((t: string) => t.trim())
+            : Array.isArray(p.tallas)
+            ? p.tallas
             : [],
         colores:
           typeof p.colores === "string"
