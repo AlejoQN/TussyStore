@@ -39,9 +39,6 @@ export default function LoginPage() {
         email: form.email,
         password: form.password,
       });
-      if (!res.ok) {
-        throw new Error("Network response was not ok");
-      }
       await login(form.email, form.password);
       setSuccess({ type: "login", msg: "¡Inicio de sesión exitoso!" });
       setTimeout(() => router.push("/"), 1200);

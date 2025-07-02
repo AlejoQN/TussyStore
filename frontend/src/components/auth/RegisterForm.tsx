@@ -222,16 +222,6 @@ export default function RegisterForm() {
             required
           />
         </div>
-        {/* Rol */}
-        <select
-          name="rol"
-          value={form.rol}
-          onChange={handleChange}
-          className="w-full border border-black rounded-xl p-3 text-base sm:text-lg mb-4 bg-white text-gray-400"
-        >
-          <option value="cliente">Cliente</option>
-          <option value="admin">Admin</option>
-        </select>
         {/* Checkbox */}
         <div className="w-full flex items-center mb-2">
           <input
