@@ -20,20 +20,17 @@ export default function RecoverForm() {
     setSuccess(null);
     try {
       const res = await api.post("/auth/recover", { email });
-      const data = res.data;
-      if (!res.ok) {
-        if (data.error?.includes("no registrado")) {
-          throw new Error("El email no está registrado.");
-        }
-        throw new Error(data.error || "No se pudo enviar el mail.");
-      }
       setSuccess({
         type: "recover",
         msg: "¡Revisa tu correo para recuperar tu contraseña!",
       });
       setEmail("");
     } catch (err: any) {
-      setError({ type: "server", msg: err.message });
+      // axios pone el mensaje de error en err.response.data.error
+      const msg = err?.response?.data?.error?.includes("no registrado")
+        ? "El email no está registrado."
+        : err?.response?.data?.error || "No se pudo enviar el mail.";
+      setError({ type: "server", msg });
     }
   };
 
