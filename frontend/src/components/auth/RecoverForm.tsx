@@ -20,7 +20,7 @@ export default function RecoverForm() {
     setSuccess(null);
     try {
       const res = await api.post("/auth/recover", { email });
-      const data = await res.json();
+      const data = res.data;
       if (!res.ok) {
         if (data.error?.includes("no registrado")) {
           throw new Error("El email no está registrado.");
