@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
+import api from "@/utils/axios";
 
 export default function LoginPage() {
   const { login } = useAuth();
@@ -34,6 +35,13 @@ export default function LoginPage() {
     setError(null);
     setSuccess(null);
     try {
+      const res = await api.post("/auth/login", {
+        email: form.email,
+        password: form.password,
+      });
+      if (!res.ok) {
+        throw new Error("Network response was not ok");
+      }
       await login(form.email, form.password);
       setSuccess({ type: "login", msg: "¡Inicio de sesión exitoso!" });
       setTimeout(() => router.push("/"), 1200);

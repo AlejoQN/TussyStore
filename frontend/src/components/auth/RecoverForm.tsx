@@ -2,6 +2,7 @@
 import Link from "next/link";
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
+import api from "@/utils/axios";
 
 export default function RecoverForm() {
   const [email, setEmail] = useState("");
@@ -18,11 +19,7 @@ export default function RecoverForm() {
     setError(null);
     setSuccess(null);
     try {
-      const res = await fetch("/api/auth/recuperar", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
-      });
+      const res = await api.post("/auth/recover", { email });
       const data = await res.json();
       if (!res.ok) {
         if (data.error?.includes("no registrado")) {

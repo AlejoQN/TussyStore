@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useUserCart } from "@/hooks/userCart";
-import axios from "axios";
+import api from "@/utils/axios";
 
 const STORAGE_KEY = "tussy_address";
 
@@ -81,7 +81,7 @@ export default function DireccionPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (form.guardar && token) {
-      await axios.post("/api/direcciones", form, {
+      await api.post("/api/direcciones", form, {
         headers: { Authorization: `Bearer ${token}` },
       });
     }
@@ -114,8 +114,8 @@ export default function DireccionPage() {
 
   useEffect(() => {
     if (!token) return;
-    axios
-      .get("/api/direcciones", {
+    api
+      .get("/direcciones", {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((res) => setDireccionesGuardadas(res.data.direcciones))

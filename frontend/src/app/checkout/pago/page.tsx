@@ -5,6 +5,7 @@ import { useCheckout } from "../checkoutContext";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useUserCart } from "@/hooks/userCart";
+import api from "@/utils/axios";
 
 const metodos = [
   { id: "mercadopago", nombre: "Mercado Pago" },
@@ -41,9 +42,20 @@ export default function MetodoPago() {
     }
   };
 
-  const handleMercadoPago = () => {
-    // Aquí deberías redirigir al usuario al link de pago real de MercadoPago
-    window.open("https://link.mercadopago.com.co/tussystore", "_blank");
+  const handleMercadoPago = async () => {
+    try {
+      const response = await api.post("/pagos/mercadopago", {
+        // Aquí debes enviar los datos necesarios para crear el pago
+        items,
+        total,
+      });
+      const { url } = response.data;
+      // Redirige al usuario a la URL de pago de MercadoPago
+      window.open(url, "_blank");
+    } catch (error) {
+      console.error("Error al procesar el pago con MercadoPago:", error);
+      // Manejo de errores (mostrar mensaje, etc.)
+    }
   };
 
   return (

@@ -22,7 +22,21 @@ exports.register = async (req, res) => {
       "INSERT INTO usuarios (nombre, email, password, edad, rol, telefono, direccion, foto) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
       [nombre, email, hashed, edad, rol || "cliente", telefono, direccion, foto]
     );
-    res.status(201).json({ message: "Usuario registrado correctamente" });
+    // Generar JWT
+    const token = jwt.sign(
+      { id: user.id, email: user.email, rol: user.rol },
+      process.env.JWT_SECRET,
+      { expiresIn: process.env.JWT_EXPIRES_IN || "1d" }
+    );
+    res.json({
+      token,
+      user: {
+        id: user.id,
+        nombre: user.nombre,
+        email: user.email,
+        rol: user.rol,
+      },
+    });
   } catch (err) {
     console.error("Error en el registro:", err);
     res.status(500).json({ error: "Error en el registro" });

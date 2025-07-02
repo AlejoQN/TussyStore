@@ -1,6 +1,7 @@
 "use client";
 import React, { useState } from "react";
 import Link from "next/link";
+import api from "@/utils/axios";
 
 const initialState = {
   nombres: "",
@@ -72,17 +73,8 @@ export default function RegisterForm() {
       formData.append("rol", form.rol);
       if (form.foto) formData.append("foto", form.foto);
 
-      const res = await fetch("/api/auth/register", {
-        method: "POST",
-        body: formData,
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        if (data.error?.includes("registrado")) {
-          throw new Error("El email ya está registrado.");
-        }
-        throw new Error(data.error || "Error en el registro");
-      }
+      await api.post("/auth/register", formData);
+
       setSuccess({ type: "register", msg: "¡Cuenta creada correctamente!" });
       setForm(initialState);
     } catch (err: any) {

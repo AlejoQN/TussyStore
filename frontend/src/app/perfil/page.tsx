@@ -2,7 +2,7 @@
 import Header from "@/components/common/Header";
 import Footer from "@/components/common/Footer";
 import { useState, useEffect, useRef } from "react";
-import axios from "axios";
+import api from "@/utils/axios";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
@@ -44,7 +44,7 @@ export default function PerfilPage() {
     }
     const fetchUser = async () => {
       try {
-        const { data } = await axios.get("/api/usuario/perfil", {
+        const { data } = await api.get("/usuario/perfil", {
           headers: { Authorization: `Bearer ${token}` },
         });
         const foto =
@@ -92,8 +92,8 @@ export default function PerfilPage() {
     e.preventDefault();
     setLoading(true);
     try {
-      const { data } = await axios.put(
-        "/api/usuario/perfil",
+      const { data } = await api.put(
+        "/usuario/perfil",
         {
           nombre: form.nombres,
           telefono: form.telefono,
@@ -145,8 +145,8 @@ export default function PerfilPage() {
       return;
     }
     try {
-      await axios.post(
-        "/api/auth/cambiar-password",
+      await api.post(
+        "/auth/cambiar-password",
         { actual: passForm.actual, nueva: passForm.nueva },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -163,7 +163,7 @@ export default function PerfilPage() {
     const formData = new FormData();
     formData.append("foto", file);
     try {
-      const { data } = await axios.post("/api/usuario/subir-foto", formData, {
+      const { data } = await api.post("/usuario/subir-foto", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
           Authorization: `Bearer ${token}`,
@@ -179,7 +179,7 @@ export default function PerfilPage() {
         foto: fotoUrl,
       }));
       // Vuelve a pedir los datos completos al backend para actualizar el contexto
-      const perfilRes = await axios.get("/api/usuario/perfil", {
+      const perfilRes = await api.get("/usuario/perfil", {
         headers: { Authorization: `Bearer ${token}` },
       });
       const perfil = perfilRes.data;
@@ -207,7 +207,7 @@ export default function PerfilPage() {
 
   const handleDeleteAccount = async () => {
     try {
-      await axios.delete("/api/usuario/eliminar", {
+      await api.delete("/usuario/eliminar", {
         headers: { Authorization: `Bearer ${token}` },
       });
       logout();

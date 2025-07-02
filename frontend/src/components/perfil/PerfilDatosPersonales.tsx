@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import axios from "axios";
+import api from "@/utils/axios";
 import { useAuth } from "@/context/AuthContext";
 
 export default function PerfilDatosPersonales() {
@@ -22,7 +22,7 @@ export default function PerfilDatosPersonales() {
   useEffect(() => {
     async function fetchUser() {
       try {
-        const { data } = await axios.get("/api/usuario/perfil", {
+        const { data } = await api.get("/api/usuario/perfil", {
           headers: { Authorization: `Bearer ${token}` },
         });
         setForm({
@@ -57,7 +57,7 @@ export default function PerfilDatosPersonales() {
     const formData = new FormData();
     formData.append("foto", file);
     try {
-      const { data } = await axios.post("/api/usuario/subir-foto", formData, {
+      const { data } = await api.post("/api/usuario/subir-foto", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
           Authorization: `Bearer ${token}`,
@@ -83,7 +83,7 @@ export default function PerfilDatosPersonales() {
       if (file) {
         const data = new FormData();
         data.append("foto", file);
-        const res = await axios.post("/api/usuario/upload-foto", data, {
+        const res = await api.post("/usuario/upload-foto", data, {
           headers: {
             "Content-Type": "multipart/form-data",
             Authorization: `Bearer ${token}`,
@@ -91,7 +91,7 @@ export default function PerfilDatosPersonales() {
         });
         foto = res.data.url;
       }
-      await axios.put("/api/usuario/perfil", form, {
+      await api.put("/usuario/perfil", form, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setMensaje("¡Datos guardados correctamente!");

@@ -4,7 +4,7 @@ import Footer from "@/components/common/Footer";
 import { useCheckout } from "../checkoutContext";
 import { useRouter } from "next/navigation";
 import { useUserCart } from "@/hooks/userCart";
-import axios from "axios";
+import api from "@/utils/axios";
 import { useMemo, useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 
@@ -78,8 +78,8 @@ export default function RevisionPedido() {
     setLoading(true);
     setError("");
     try {
-      await axios.post(
-        "/api/ordenes",
+      await api.post(
+        "/ordenes",
         {
           direccion,
           metodoPago,

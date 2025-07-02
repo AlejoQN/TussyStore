@@ -2,7 +2,7 @@
 import Header from "@/components/common/Header";
 import Footer from "@/components/common/Footer";
 import { useEffect, useState } from "react";
-import axios from "axios";
+import api from "@/utils/axios";
 import { useAuth } from "@/context/AuthContext";
 import Link from "next/link";
 
@@ -25,8 +25,8 @@ export default function PerfilDirecciones() {
 
   useEffect(() => {
     if (!token) return;
-    axios
-      .get("/api/direcciones", {
+    api
+      .get("/direcciones", {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((res) => setDirecciones(res.data.direcciones))
@@ -41,11 +41,11 @@ export default function PerfilDirecciones() {
     e.preventDefault();
     if (!token) return;
     if (editId) {
-      await axios.put(`/api/direcciones/${editId}`, form, {
+      await api.put(`/direcciones/${editId}`, form, {
         headers: { Authorization: `Bearer ${token}` },
       });
     } else {
-      await axios.post("/api/direcciones", form, {
+      await api.post("/direcciones", form, {
         headers: { Authorization: `Bearer ${token}` },
       });
     }
@@ -53,7 +53,7 @@ export default function PerfilDirecciones() {
     setEditId(null);
     setForm({});
     // Refrescar direcciones
-    const res = await axios.get("/api/direcciones", {
+    const res = await api.get("/direcciones", {
       headers: { Authorization: `Bearer ${token}` },
     });
     setDirecciones(res.data.direcciones);
@@ -67,7 +67,7 @@ export default function PerfilDirecciones() {
 
   const handleEliminar = async (id: number) => {
     if (!token) return;
-    await axios.delete(`/api/direcciones/${id}`, {
+    await api.delete(`/direcciones/${id}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     setDirecciones((prev) => prev.filter((d) => d.id !== id));
@@ -75,13 +75,13 @@ export default function PerfilDirecciones() {
 
   const handlePrincipal = async (id: number) => {
     if (!token) return;
-    await axios.put(
-      `/api/direcciones/${id}/principal`,
+    await api.put(
+      `/direcciones/${id}/principal`,
       {},
       { headers: { Authorization: `Bearer ${token}` } }
     );
     // Refrescar direcciones
-    const res = await axios.get("/api/direcciones", {
+    const res = await api.get("/direcciones", {
       headers: { Authorization: `Bearer ${token}` },
     });
     setDirecciones(res.data.direcciones);

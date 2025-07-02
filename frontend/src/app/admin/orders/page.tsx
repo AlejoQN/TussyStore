@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import axios from "axios";
+import api from "@/utils/axios";
 import { useAuth } from "@/context/AuthContext";
 
 interface Orden {
@@ -42,8 +42,8 @@ export default function AdminOrdersPage() {
   useEffect(() => {
     if (!token) return;
     setLoading(true);
-    axios
-      .get("/api/ordenes/all", {
+    api
+      .get("/ordenes/all", {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((res) => {
@@ -74,11 +74,14 @@ export default function AdminOrdersPage() {
     if (!token) return;
     setActualizando(id);
     try {
-      await axios.put(
-        `/api/ordenes/estado/${id}`,
+      await api.put(
+        `/ordenes/estado/${id}`,
         { nuevo_estado: nuevoEstado },
         { headers: { Authorization: `Bearer ${token}` } }
       );
+      await api.get("/ordenes/all", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       setOrdenes((prev) =>
         prev.map((o) => (o.id === id ? { ...o, estado: nuevoEstado } : o))
       );

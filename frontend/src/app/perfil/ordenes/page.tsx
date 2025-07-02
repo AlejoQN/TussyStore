@@ -2,7 +2,7 @@
 import Header from "@/components/common/Header";
 import Footer from "@/components/common/Footer";
 import { useEffect, useState } from "react";
-import axios from "axios";
+import api from "@/utils/axios";
 import { useAuth } from "@/context/AuthContext";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -39,8 +39,8 @@ export default function PerfilOrdenes() {
 
   useEffect(() => {
     if (!token) return;
-    axios
-      .get("/api/ordenes", {
+    api
+      .get("/ordenes", {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((res) => setOrdenes(res.data.ordenes || []))
@@ -49,13 +49,13 @@ export default function PerfilOrdenes() {
 
   const handleCancel = async (id: number) => {
     if (!token) return;
-    await axios.put(
-      `/api/ordenes/cancelar/${id}`,
+    await api.put(
+      `/ordenes/cancelar/${id}`,
       {},
       { headers: { Authorization: `Bearer ${token}` } }
     );
     // Refresca las órdenes
-    const res = await axios.get("/api/ordenes", {
+    const res = await api.get("/ordenes", {
       headers: { Authorization: `Bearer ${token}` },
     });
     setOrdenes(res.data.ordenes || []);

@@ -2,7 +2,7 @@
 import Header from "@/components/common/Header";
 import Footer from "@/components/common/Footer";
 import { useEffect, useState } from "react";
-import axios from "axios";
+import api from "@/utils/axios";
 import { useAuth } from "@/context/AuthContext";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -48,8 +48,8 @@ export default function PerfilFavoritos() {
   // Obtener favoritos del usuario
   useEffect(() => {
     if (!token) return;
-    axios
-      .get("/api/favoritos", {
+    api
+      .get("/favoritos", {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((res) => setFavoritos(res.data.favoritos))
@@ -59,7 +59,7 @@ export default function PerfilFavoritos() {
   // Eliminar favorito (con confirmación)
   const handleEliminar = async (id: number) => {
     if (!token) return;
-    await axios.delete(`/api/favoritos/${id}`, {
+    await api.delete(`/favoritos/${id}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     setFavoritos((prev) => prev.filter((f) => f.id !== id));
@@ -70,8 +70,8 @@ export default function PerfilFavoritos() {
   // Agregar al carrito
   const handleAgregarAlCarrito = async (producto: Favorito) => {
     if (!token) return;
-    await axios.post(
-      "/api/cart",
+    await api.post(
+      "/cart",
       {
         productoId: producto.id,
         talla: producto.talla,

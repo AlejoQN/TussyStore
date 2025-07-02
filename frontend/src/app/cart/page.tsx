@@ -4,6 +4,7 @@ import { useUserCart } from "@/hooks/userCart";
 import Link from "next/link";
 import Header from "@/components/common/Header";
 import Footer from "@/components/common/Footer";
+import api from "@/utils/axios";
 
 export default function CartPage() {
   const [mounted, setMounted] = useState(false);
@@ -11,6 +12,18 @@ export default function CartPage() {
 
   useEffect(() => {
     setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        await api.get("/carrito");
+      } catch (error) {
+        console.error("Error al obtener el carrito:", error);
+      }
+    };
+
+    fetchData();
   }, []);
 
   if (!mounted) return null;
