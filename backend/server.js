@@ -54,34 +54,34 @@ app.use(passport.session());
 
 // Rutas
 const productRoutes = require("./routes/productRoutes");
-app.use("/api/productos", productRoutes);
+app.use("/productos", productRoutes);
 
 const orderRoutes = require("./routes/orderRoutes");
-app.use("/api/ordenes", orderRoutes);
+app.use("/ordenes", orderRoutes);
 
 const cartRoutes = require("./routes/cartRoutes");
-app.use("/api/cart", cartRoutes);
+app.use("/cart", cartRoutes);
 
 const authRoutes = require("./routes/authRoutes");
-app.use("/api/auth", authRoutes);
+app.use("/auth", authRoutes);
 
 const favoritosRoutes = require("./routes/favoritosRoutes");
-app.use("/api/favoritos", favoritosRoutes);
+app.use("/favoritos", favoritosRoutes);
 
 const addressRoutes = require("./routes/addressRoutes");
-app.use("/api/direcciones", addressRoutes);
+app.use("/direcciones", addressRoutes);
 
 const userRoutes = require("./routes/userRoutes");
-app.use("/api/usuario", userRoutes);
+app.use("/usuario", userRoutes);
 
 const adminRoutes = require("./routes/adminRoutes");
-app.use("/api/admin", adminRoutes);
+app.use("/admin", adminRoutes);
 
 const analyticsRoutes = require("./routes/analyticsRoutes");
-app.use("/api/analytics", analyticsRoutes);
+app.use("/analytics", analyticsRoutes);
 
 // Ruta de salud
-app.get("/api/health", (req, res) => {
+app.get("/health", (req, res) => {
   res.json({ status: "ok", message: "Tussy Store API running" });
 });
 
