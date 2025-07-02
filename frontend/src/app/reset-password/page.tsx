@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 export default function ResetPasswordPage() {
   const [password, setPassword] = useState("");
@@ -8,8 +8,14 @@ export default function ResetPasswordPage() {
   const [success, setSuccess] = useState("");
   const [error, setError] = useState("");
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const token = searchParams.get("token");
+
+  // Si necesitas el token, puedes obtenerlo con JS puro:
+  // Solo en el cliente:
+  let token = "";
+  if (typeof window !== "undefined") {
+    const params = new URLSearchParams(window.location.search);
+    token = params.get("token") || "";
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,7 +47,7 @@ export default function ResetPasswordPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center text-black bg-white">
+    <div className="min-h-screen flex items-center justify-center bg-white">
       <form
         onSubmit={handleSubmit}
         className="bg-white p-8 rounded shadow max-w-md w-full"
