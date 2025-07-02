@@ -63,7 +63,7 @@ const cartRoutes = require("./routes/cartRoutes");
 app.use("/cart", cartRoutes);
 
 const authRoutes = require("./routes/authRoutes");
-app.use("/auth", authRoutes);
+app.use("/api/auth", authRoutes);
 
 const favoritosRoutes = require("./routes/favoritosRoutes");
 app.use("/favoritos", favoritosRoutes);
