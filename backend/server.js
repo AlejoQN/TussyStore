@@ -80,7 +80,12 @@ app.use("/admin", adminRoutes);
 const analyticsRoutes = require("./routes/analyticsRoutes");
 app.use("/analytics", analyticsRoutes);
 
-// Ruta de salud
+// Ruta de salud para /api/health
+app.get("/api/health", (req, res) => {
+  res.json({ status: "ok", message: "Tussy Store API running" });
+});
+
+// (Opcional) Ruta de salud para /health
 app.get("/health", (req, res) => {
   res.json({ status: "ok", message: "Tussy Store API running" });
 });
